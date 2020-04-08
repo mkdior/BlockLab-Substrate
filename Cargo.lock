@@ -4034,6 +4034,7 @@ dependencies = [
  "frame-support 2.0.0-alpha.5",
  "frame-system",
  "orml-traits",
+ "pallet-balances",
  "parity-scale-codec",
  "sp-core 2.0.0-alpha.5",
  "sp-io 2.0.0-alpha.5",
@@ -5932,8 +5933,8 @@ dependencies = [
  "serde",
  "serde_json",
  "sp-chain-spec",
- "sp-core",
- "sp-runtime",
+ "sp-core 2.0.0-alpha.5",
+ "sp-runtime 2.0.0-alpha.5",
 ]
 
 [[package]]
@@ -6631,8 +6632,8 @@ dependencies = [
  "sp-api",
  "sp-blockchain",
  "sp-chain-spec",
- "sp-core",
- "sp-io",
+ "sp-core 2.0.0-alpha.5",
+ "sp-io 2.0.0-alpha.5",
  "sp-offchain",
  "sp-rpc",
  "sp-runtime 2.0.0-alpha.5",
@@ -6661,7 +6662,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sp-chain-spec",
- "sp-core",
+ "sp-core 2.0.0-alpha.5",
  "sp-rpc",
  "sp-runtime 2.0.0-alpha.5",
  "sp-transaction-pool",
