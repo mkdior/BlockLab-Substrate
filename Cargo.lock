@@ -255,66 +255,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "auction-node"
-version = "2.0.0-alpha.5"
-dependencies = [
- "auction-node-runtime",
- "futures 0.3.4",
- "log",
- "sc-basic-authorship",
- "sc-cli",
- "sc-client",
- "sc-client-api",
- "sc-consensus-aura",
- "sc-executor",
- "sc-finality-grandpa",
- "sc-network",
- "sc-service",
- "sc-transaction-pool",
- "sp-consensus",
- "sp-consensus-aura",
- "sp-core 2.0.0-alpha.5",
- "sp-finality-grandpa",
- "sp-inherents 2.0.0-alpha.5",
- "sp-runtime 2.0.0-alpha.5",
- "sp-transaction-pool",
- "structopt",
- "substrate-build-script-utils",
-]
-
-[[package]]
-name = "auction-node-runtime"
-version = "2.0.0-alpha.5"
-dependencies = [
- "frame-executive",
- "frame-support 2.0.0-alpha.5",
- "frame-system",
- "pallet-aura",
- "pallet-balances",
- "pallet-grandpa",
- "pallet-randomness-collective-flip",
- "pallet-sudo",
- "pallet-template",
- "pallet-timestamp",
- "pallet-transaction-payment",
- "parity-scale-codec",
- "serde",
- "sp-api",
- "sp-block-builder",
- "sp-consensus-aura",
- "sp-core 2.0.0-alpha.5",
- "sp-inherents 2.0.0-alpha.5",
- "sp-io 2.0.0-alpha.5",
- "sp-offchain",
- "sp-runtime 2.0.0-alpha.5",
- "sp-session",
- "sp-std 2.0.0-alpha.5",
- "sp-transaction-pool",
- "sp-version",
- "substrate-wasm-builder-runner",
-]
-
-[[package]]
 name = "autocfg"
 version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3513,6 +3453,66 @@ dependencies = [
 ]
 
 [[package]]
+name = "node-auction"
+version = "2.0.0-alpha.5"
+dependencies = [
+ "futures 0.3.4",
+ "log",
+ "node-auction-runtime",
+ "sc-basic-authorship",
+ "sc-cli",
+ "sc-client",
+ "sc-client-api",
+ "sc-consensus-aura",
+ "sc-executor",
+ "sc-finality-grandpa",
+ "sc-network",
+ "sc-service",
+ "sc-transaction-pool",
+ "sp-consensus",
+ "sp-consensus-aura",
+ "sp-core 2.0.0-alpha.5",
+ "sp-finality-grandpa",
+ "sp-inherents 2.0.0-alpha.5",
+ "sp-runtime 2.0.0-alpha.5",
+ "sp-transaction-pool",
+ "structopt",
+ "substrate-build-script-utils",
+]
+
+[[package]]
+name = "node-auction-runtime"
+version = "2.0.0-alpha.5"
+dependencies = [
+ "frame-executive",
+ "frame-support 2.0.0-alpha.5",
+ "frame-system",
+ "pallet-auction",
+ "pallet-aura",
+ "pallet-balances",
+ "pallet-grandpa",
+ "pallet-randomness-collective-flip",
+ "pallet-sudo",
+ "pallet-timestamp",
+ "pallet-transaction-payment",
+ "parity-scale-codec",
+ "serde",
+ "sp-api",
+ "sp-block-builder",
+ "sp-consensus-aura",
+ "sp-core 2.0.0-alpha.5",
+ "sp-inherents 2.0.0-alpha.5",
+ "sp-io 2.0.0-alpha.5",
+ "sp-offchain",
+ "sp-runtime 2.0.0-alpha.5",
+ "sp-session",
+ "sp-std 2.0.0-alpha.5",
+ "sp-transaction-pool",
+ "sp-version",
+ "substrate-wasm-builder-runner",
+]
+
+[[package]]
 name = "node-bench"
 version = "0.8.0-alpha.5"
 dependencies = [
@@ -4024,6 +4024,19 @@ dependencies = [
  "sp-io 2.0.0-alpha.5",
  "sp-runtime 2.0.0-alpha.5",
  "sp-std 2.0.0-alpha.5",
+]
+
+[[package]]
+name = "pallet-auction"
+version = "2.0.0-alpha.5"
+dependencies = [
+ "frame-support 2.0.0-alpha.5",
+ "frame-system",
+ "orml-traits",
+ "parity-scale-codec",
+ "sp-core 2.0.0-alpha.5",
+ "sp-io 2.0.0-alpha.5",
+ "sp-runtime 2.0.0-alpha.5",
 ]
 
 [[package]]
@@ -4654,19 +4667,6 @@ dependencies = [
  "sp-io 2.0.0-alpha.5",
  "sp-runtime 2.0.0-alpha.5",
  "sp-std 2.0.0-alpha.5",
-]
-
-[[package]]
-name = "pallet-template"
-version = "2.0.0-alpha.5"
-dependencies = [
- "frame-support 2.0.0-alpha.5",
- "frame-system",
- "orml-traits",
- "parity-scale-codec",
- "sp-core 2.0.0-alpha.5",
- "sp-io 2.0.0-alpha.5",
- "sp-runtime 2.0.0-alpha.5",
 ]
 
 [[package]]

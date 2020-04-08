@@ -1,12 +1,12 @@
 [package]
-authors = ['Anonymous']
+authors = ['Hamza Tokuchi']
 edition = '2018'
-name = 'pallet-template'
+name = 'pallet-auction'
 version = "2.0.0-alpha.5"
 license = "Unlicense"
 homepage = "https://substrate.dev"
 repository = "https://github.com/paritytech/substrate/"
-description = "FRAME pallet template"
+description = "Pallet for auctions."
 
 [dependencies]
 codec = { package = "parity-scale-codec", version = "1.3.0", default-features = false, features = ["derive"] }

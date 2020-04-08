@@ -2,7 +2,7 @@
 members = [
 	"bin/auction-node/node",
 	"bin/auction-node/runtime",
-	"bin/auction-node/pallets/template",
+	"bin/auction-node/pallets/auction",
 	"bin/node/bench",
 	"bin/node/cli",
 	"bin/node/executor",
