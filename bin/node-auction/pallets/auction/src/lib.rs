@@ -8,22 +8,19 @@ use frame_support::sp_runtime::{
     DispatchResult,
 };
 use frame_support::{
-    decl_error, decl_event, decl_module, decl_storage, dispatch, dispatch::Parameter, ensure,
+    decl_error, decl_event, decl_module, decl_storage, dispatch, ensure,
+    dispatch::Parameter,
     storage::IterableStorageDoubleMap,
+    traits::{Currency, ExistenceRequirement::AllowDeath, ReservableCurrency},
 };
 use frame_system::{self as system, ensure_signed};
 use orml_traits::auction::{Auction, AuctionHandler, AuctionInfo};
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-#[cfg(test)]
-mod mock;
 
-#[cfg(test)]
-mod tests;
 
 /// The pallet's configuration trait.
 pub trait Trait: system::Trait {
-    // Add other types and constants required to configure this pallet.
 
     /// The overarching event type.
     type Event: From<Event<Self>> + Into<<Self as system::Trait>::Event>;
