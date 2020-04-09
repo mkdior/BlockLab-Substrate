@@ -18,6 +18,10 @@ use frame_system::{self as system, ensure_signed};
 use orml_traits::auction::{Auction, AuctionHandler, AuctionInfo};
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+#[cfg(test)]
+mod tests;
+
 type BalanceOf<T> = <<T as Trait>::Currency as Currency<<T as system::Trait>::AccountId>>::Balance;
 
 /// The pallet's configuration trait.
@@ -32,7 +36,7 @@ decl_storage! {trait Store for Module<T: Trait> as AuctionModule {}}
 decl_event!(
     pub enum Event<T>
     where
-        AccountId = <T as system::Trait>::AccountId,
+        <T as system::Trait>::AccountId,
         Balance = BalanceOf<T>,
         BlockNumber = <T as system::Trait>::BlockNumber,
     {
