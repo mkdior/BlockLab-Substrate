@@ -8,9 +8,9 @@ use frame_support::sp_runtime::{
     DispatchResult,
 };
 use frame_support::{
-    decl_error, decl_event, decl_module, decl_storage, dispatch,
+    decl_error, decl_event, decl_module, decl_storage, dispatch, ensure,
+    weights::SimpleDispatchInfo,
     dispatch::Parameter,
-    ensure,
     storage::IterableStorageDoubleMap,
     traits::{Currency, ExistenceRequirement::AllowDeath, ReservableCurrency},
 };
@@ -43,13 +43,14 @@ decl_event!(
 );
 
 decl_module! {
-    /// The module declaration.
-    pub struct Module<T: Trait> for enum Call where origin: T::Origin {
+   pub struct Module<T: Trait> for enum Call where origin: T::Origin {
         type Error = Error<T>;
 
-        // Initializing events
         fn deposit_event() = default;
 
+        // TODO(Hamza):
+        // https://github.com/substrate-developer-hub/recipes/blob/master/pallets/weights/src/lib.rs
+        #[weight = SimpleDispatchInfo::FixedNormal(100)] 
         pub fn lock_funds(origin, amount: BalanceOf<T>) -> DispatchResult {
             let target = ensure_signed(origin)?;
 
@@ -61,7 +62,8 @@ decl_module! {
             Self::deposit_event(RawEvent::LockFunds(target, amount, now));
             Ok(())
         }
-
+        
+        #[weight = SimpleDispatchInfo::FixedNormal(100)]
         pub fn unlock_funds(origin, amount: BalanceOf<T>) -> DispatchResult {
             let target = ensure_signed(origin)?;
 
@@ -73,10 +75,11 @@ decl_module! {
             Ok(())
         }
 
-        pub fn transfer_funds(origin, dest: T::AcountId, amount: BalanceOf<T>) -> DispatchResult {
+        #[weight = SimpleDispatchInfo::FixedNormal(100)]
+        pub fn transfer_funds(origin, dest: T::AccountId, amount: BalanceOf<T>) -> DispatchResult {
             let sender = ensure_signed(origin)?;
 
-            T::Currency::transfer(&sender, &dest, amount);
+            T::Currency::transfer(&sender, &dest, amount, AllowDeath)?;
 
             let now = <system::Module<T>>::block_number();
 
