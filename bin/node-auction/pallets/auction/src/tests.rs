@@ -90,7 +90,7 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
         .build_storage::<AuctionTestRuntime>()
         .unwrap();
     balances::GenesisConfig::<AuctionTestRuntime> {
-        balances: vec![(1, 13), (2, 11), (3, 1), (4, 3), (5, 19)],
+        balances: vec![(1, 1300), (2, 1100), (3, 100), (4, 300), (5, 1900)],
     }
     .assimilate_storage(&mut t)
     .unwrap();
@@ -103,6 +103,29 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 #[test]
 fn new_test_ext_behaves() {
     new_test_ext().execute_with(|| {
-        assert_eq!(Balances::free_balance(&1), 13);
+        assert_eq!(Balances::free_balance(&1), 1300);
     })
 }
+
+// Currency
+/////////////////////////////////////////////////////////
+#[test]
+fn new_test_transfer() {}
+/////////////////////////////////////////////////////////
+// Reservable
+/////////////////////////////////////////////////////////
+#[test]
+fn new_test_can_reserve() {}
+
+#[test]
+fn new_test_reserve() {}
+
+#[test]
+fn new_test_unreserver() {}
+
+#[test]
+fn new_test_slash_reserve() {}
+
+#[test]
+fn new_test_repatriate_reserved() {}
+///////////////////////////////////////////////////////
