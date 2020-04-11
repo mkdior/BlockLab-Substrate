@@ -26,7 +26,7 @@ pub trait Auction<AccountId, BlockNumber> {
 	/// The id of an AuctionInfo
 	type AuctionId: FullCodec + Default + Copy + Eq + PartialEq + MaybeSerializeDeserialize + Debug;
 	/// The price to bid.
-	type Balance: AtLeast32Bit + FullCodec + Copy + MaybeSerializeDeserialize + Debug + Default;
+	type Balance: Encode + Decode + Default + Clone + PartialEq;
 
 	/// The auction info of `id`
 	fn auction_info(id: Self::AuctionId) -> Option<AuctionInfo<AccountId, Self::Balance, BlockNumber>>;

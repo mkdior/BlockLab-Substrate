@@ -3,24 +3,22 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Imports
 // /////////////////////////////////////////////////////////////////////////////////////////////
-use frame_support::sp_runtime::{
-    traits::{AtLeast32Bit, MaybeSerializeDeserialize, Member, One, Zero},
-    DispatchResult,
-};
 use frame_support::{
-    decl_error, decl_event, decl_module, decl_storage, dispatch,
-    dispatch::Parameter,
-    ensure,
-    storage::IterableStorageDoubleMap,
-    traits::{Currency, ExistenceRequirement::AllowDeath, ReservableCurrency},
-    weights::SimpleDispatchInfo,
+    decl_error, decl_event, decl_module, decl_storage, ensure,
+    dispatch::Parameter, weights::SimpleDispatchInfo, storage::IterableStorageDoubleMap,
+    traits::{Currency, ReservableCurrency, ExistenceRequirement::AllowDeath},
+    sp_runtime::{DispatchResult, DispatchError, traits::{AtLeast32Bit, MaybeSerializeDeserialize, Member, One, Zero}}
 };
+
 use frame_system::{self as system, ensure_signed};
+
+
 use orml_traits::auction::{Auction, AuctionHandler, AuctionInfo};
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-#[cfg(test)]
-mod tests;
+//#[cfg(test)]
+//mod tests;
 
 type BalanceOf<T> = <<T as Trait>::Currency as Currency<<T as system::Trait>::AccountId>>::Balance;
 
@@ -28,14 +26,19 @@ type BalanceOf<T> = <<T as Trait>::Currency as Currency<<T as system::Trait>::Ac
 pub trait Trait: system::Trait + Sized {
     /// The overarching event type.
     type Event: From<Event<Self>> + Into<<Self as system::Trait>::Event>;
-    type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId> ;
+    type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
     type AuctionId: Parameter + Member + AtLeast32Bit + Default + Copy + MaybeSerializeDeserialize;
-    type Handler: AuctionHandler<Self::AccountId, BalanceOf<Self>, Self::BlockNumber, Self::AuctionId>;
+    type Handler: AuctionHandler<
+        Self::AccountId,
+        BalanceOf<Self>,
+        Self::BlockNumber,
+        Self::AuctionId,
+    >;
 }
 
 decl_storage! {
     trait Store for Module<T: Trait> as AuctionModule {
-        pub Auctions get(fn auctions): map hasher(twox_64_concat) T::AuctionId => Option<AuctionInfo<T::AccountId, T::Currency, T::BlockNumber>>;
+        pub Auctions get(fn auctions): map hasher(twox_64_concat) T::AuctionId => Option<AuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber>>;
         pub AuctionsIndex get(fn auctions_index): T::AuctionId;
         pub AuctionEndTime get(fn auction_end_time): double_map hasher(twox_64_concat) T::BlockNumber, hasher(twox_64_concat) T::AuctionId => Option<()>;
 }}
@@ -67,7 +70,8 @@ decl_module! {
         pub fn lock_funds(origin, amount: BalanceOf<T>) -> DispatchResult {
             let target = ensure_signed(origin)?;
 
-            //TODO(Hamza): Serve proper errors.
+            //TODO(Hamza): Serve proper errors. Also perhaps implement Currency for our local trait
+            // to avoid the use of Currency::X
             T::Currency::reserve(&target, amount).map_err(|_| "Not able to reserve");
 
             let now = <system::Module<T>>::block_number();
