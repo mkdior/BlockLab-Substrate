@@ -4024,6 +4024,7 @@ version = "2.0.0-alpha.5"
 dependencies = [
  "frame-support 2.0.0-alpha.5",
  "frame-system",
+ "num-traits 0.2.11",
  "orml-traits",
  "pallet-balances",
  "parity-scale-codec",

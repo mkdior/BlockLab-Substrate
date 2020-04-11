@@ -1,6 +1,7 @@
 // Creating mock runtime here
 
 use crate::*;
+use orml_traits::*;
 use frame_support::{
     assert_err, assert_ok, impl_outer_event, impl_outer_origin, parameter_types,
     traits::BalanceStatus,
@@ -65,14 +66,14 @@ impl balances::Trait for AuctionTestRuntime {
     type AccountStore = system::Module<AuctionTestRuntime>;
 }
 
-mod charity {
+mod auction {
     pub use crate::Event;
 }
 
 impl_outer_event! {
     pub enum AuctionTestEvent for AuctionTestRuntime {
         system<T>,
-        charity<T>,
+        auction<T>,
         balances<T>,
     }
 }
