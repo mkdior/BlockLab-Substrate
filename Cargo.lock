@@ -5887,6 +5887,7 @@ dependencies = [
  "sp-runtime",
  "sp-state-machine",
  "sp-utils",
+ "sp-version",
  "structopt",
  "substrate-prometheus-endpoint",
  "tempfile",
