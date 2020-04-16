@@ -10,17 +10,17 @@ description = "Pallet for auctions"
 ############################################
 [dependencies.frame-support]
 default-features = false
-version = "2.0.0-alpha.5"
+version = "2.0.0-alpha.6"
 path = "../../../../frame/support"
 
 [dependencies.frame-system]
 default-features = false
-version = "2.0.0-alpha.5"
+version = "2.0.0-alpha.6"
 path = "../../../../frame/system"
 
 [dependencies.pallet-balances]
 default-features = false
-version = '2.0.0-alpha.5'
+version = '2.0.0-alpha.6'
 path = '../../../../frame/balances'
 
 [dependencies.orml-traits]
@@ -39,7 +39,7 @@ default-features = false
 
 [dependencies.sp-runtime]
 default-features = false
-version = "2.0.0-alpha.5"
+version = "2.0.0-alpha.6"
 path = "../../../../primitives/runtime"
 
 ############################################
@@ -47,12 +47,12 @@ path = "../../../../primitives/runtime"
 ############################################
 [dev-dependencies.sp-core]
 default-features = false
-version = "2.0.0-alpha.5"
+version = "2.0.0-alpha.6"
 path = "../../../../primitives/core"
 
 [dev-dependencies.sp-io]
 default-features = false
-version = "2.0.0-alpha.5"
+version = "2.0.0-alpha.6"
 path = "../../../../primitives/io"
 ############################################
 
