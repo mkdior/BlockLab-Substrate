@@ -3373,7 +3373,7 @@ dependencies = [
 
 [[package]]
 name = "node-auction"
-version = "2.0.0-dev"
+version = "1.0.0"
 dependencies = [
  "futures 0.3.4",
  "log",
@@ -3401,7 +3401,7 @@ dependencies = [
 
 [[package]]
 name = "node-auction-runtime"
-version = "2.0.0-dev"
+version = "1.0.0"
 dependencies = [
  "frame-executive",
  "frame-support",
@@ -3947,7 +3947,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-auction"
-version = "2.0.0-dev"
+version = "1.0.0"
 dependencies = [
  "frame-support",
  "frame-system",

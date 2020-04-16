@@ -2,27 +2,25 @@
 authors = ['Hamza Tokuchi']
 edition = '2018'
 name = 'pallet-auction'
-version = "2.0.0-dev"
+version = "1.0.0"
 license = "Unlicense"
-homepage = "https://substrate.dev"
-repository = "https://github.com/paritytech/substrate/"
 description = "Pallet for auctions"
 
 ## Core deps
 ############################################
 [dependencies.frame-support]
 default-features = false
-version = "2.0.0-alpha.6"
+version = "2.0.0-alpha.5"
 path = "../../../../frame/support"
 
 [dependencies.frame-system]
 default-features = false
-version = "2.0.0-alpha.6"
+version = "2.0.0-alpha.5"
 path = "../../../../frame/system"
 
 [dependencies.pallet-balances]
 default-features = false
-version = '2.0.0-alpha.6'
+version = '2.0.0-alpha.5'
 path = '../../../../frame/balances'
 
 [dependencies.orml-traits]
@@ -41,7 +39,7 @@ default-features = false
 
 [dependencies.sp-runtime]
 default-features = false
-version = "2.0.0-alpha.6"
+version = "2.0.0-alpha.5"
 path = "../../../../primitives/runtime"
 
 ############################################
@@ -49,12 +47,12 @@ path = "../../../../primitives/runtime"
 ############################################
 [dev-dependencies.sp-core]
 default-features = false
-version = "2.0.0-alpha.6"
+version = "2.0.0-alpha.5"
 path = "../../../../primitives/core"
 
 [dev-dependencies.sp-io]
 default-features = false
-version = "2.0.0-alpha.6"
+version = "2.0.0-alpha.5"
 path = "../../../../primitives/io"
 ############################################
 
