@@ -3,6 +3,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Imports
 // /////////////////////////////////////////////////////////////////////////////////////////////
+#[allow(unused_import)]
 use frame_support::{
     decl_error, decl_event, decl_module, decl_storage, ensure,IterableStorageDoubleMap,
     dispatch::Parameter, weights::SimpleDispatchInfo, //storage::IterableStorageDoubleMap,
@@ -10,15 +11,16 @@ use frame_support::{
     sp_runtime::{DispatchResult, DispatchError, traits::{AtLeast32Bit, MaybeSerializeDeserialize, Member, One, Zero}}
 };
 
+#[allow(unused_import)]
 use frame_system::{self as system, ensure_signed};
 
-
+#[allow(unused_import)]
 use orml_traits::auction::{Auction, AuctionHandler, AuctionInfo};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-//#[cfg(test)]
-//mod tests;
+#[cfg(test)]
+mod tests;
 
 type BalanceOf<T> = <<T as Trait>::Currency as Currency<<T as system::Trait>::AccountId>>::Balance;
 

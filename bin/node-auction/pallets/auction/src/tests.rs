@@ -1,7 +1,8 @@
 // Creating mock runtime here
 
 use crate::*;
-use orml_traits::*;
+use orml_traits::auction::*;
+#[allow(unused_imports)]
 use frame_support::{
     assert_err, assert_ok, impl_outer_event, impl_outer_origin, parameter_types,
     traits::BalanceStatus,
@@ -23,8 +24,9 @@ impl_outer_origin! {
 // For testing the pallet, we construct most of a mock runtime. This means
 // first constructing a configuration type (`Test`) which `impl`s each of the
 // configuration traits of pallets we want to use.
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq, Debug)]
 pub struct AuctionTestRuntime;
+
 parameter_types! {
     pub const BlockHashCount: u64 = 250;
     pub const MaximumBlockWeight: u32 = 1024;
@@ -36,6 +38,11 @@ parameter_types! {
     pub const CreationFee: u64 = 0;
 }
 
+pub type AccountId = u64;
+pub type Balance = u64;
+pub type BlockNumber = u64;
+pub type AuctionId = u64;
+
 impl system::Trait for AuctionTestRuntime {
     type Origin = Origin;
     type Call = ();
@@ -46,7 +53,7 @@ impl system::Trait for AuctionTestRuntime {
     type AccountId = u64;
     type Lookup = IdentityLookup<Self::AccountId>;
     type Header = Header;
-    type Event = AuctionTestEvent;
+    type Event = ();//AuctionTestEvent;
     type BlockHashCount = BlockHashCount;
     type MaximumBlockWeight = MaximumBlockWeight;
     type MaximumBlockLength = MaximumBlockLength;
@@ -56,36 +63,64 @@ impl system::Trait for AuctionTestRuntime {
     type AccountData = balances::AccountData<u64>;
     type OnNewAccount = ();
     type OnKilledAccount = ();
+    type DbWeight = ();
 }
 
+pub struct Handler;
+
+impl AuctionHandler<AccountId, Balance, BlockNumber, AuctionId> for Handler {
+    fn on_new_bid(
+        _now: BlockNumber,
+        _id: AuctionId,
+        _new_bid: (AccountId, Balance),
+        _last_bid: Option<(AccountId, Balance)>,
+    ) -> OnNewBidResult<BlockNumber> {
+        OnNewBidResult {
+            accept_bid: true,
+            auction_end: None,
+        }
+    }
+
+    fn on_auction_ended(_id: AuctionId, _winner: Option<(AccountId, Balance)>) {}
+}
+
+
 impl balances::Trait for AuctionTestRuntime {
-    type Balance = u64;
-    type Event = AuctionTestEvent;
+    type Balance = Balance;
+    type Event = ();//AuctionTestEvent;
     type DustRemoval = ();
     type ExistentialDeposit = ExistentialDeposit;
     type AccountStore = system::Module<AuctionTestRuntime>;
 }
 
-mod auction {
-    pub use crate::Event;
-}
-
-impl_outer_event! {
-    pub enum AuctionTestEvent for AuctionTestRuntime {
-        system<T>,
-        auction<T>,
-        balances<T>,
-    }
-}
-
 impl Trait for AuctionTestRuntime {
-    type Event = AuctionTestEvent;
+    type Event = ();//AuctionTestEvent;
     type Currency = balances::Module<Self>;
+    type AuctionId = AccountId;
+    type Handler = Handler;
 }
 
 pub type System = system::Module<AuctionTestRuntime>;
 pub type Balances = balances::Module<AuctionTestRuntime>;
 pub type AuctionModule = Module<AuctionTestRuntime>;
+
+
+//mod auction_events {
+//    pub use crate::Event;
+//}
+//
+//impl_outer_event! {
+//    pub enum AuctionTestEvent for AuctionTestRuntime {
+//        auction_events<T>,
+//        system<T>,
+//        balances<T>,
+//    }
+//}
+
+
+
+
+
 
 // This function basically just builds a genesis storage key/value store according to
 // our desired mockup.
