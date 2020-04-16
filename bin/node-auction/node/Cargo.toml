@@ -1,5 +1,5 @@
 [package]
-name = "node-template"
+name = "node-auction"
 version = "2.0.0-dev"
 authors = ["Anonymous"]
 description = "Basic auctioning implementation"
@@ -38,7 +38,7 @@ sc-client-api = { version = "2.0.0-dev", path = "../../../client/api" }
 sp-runtime = { version = "2.0.0-dev", path = "../../../primitives/runtime" }
 sc-basic-authorship = { path = "../../../client/basic-authorship", version = "0.8.0-dev"}
 
-node-template-runtime = { version = "2.0.0-dev", path = "../runtime" }
+node-auction-runtime = { version = "2.0.0-dev", path = "../runtime" }
 
 [build-dependencies]
 substrate-build-script-utils = { version = "2.0.0-dev", path = "../../../utils/build-script-utils" }

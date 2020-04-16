@@ -4,8 +4,8 @@
 // Imports
 // /////////////////////////////////////////////////////////////////////////////////////////////
 use frame_support::{
-    decl_error, decl_event, decl_module, decl_storage, ensure,
-    dispatch::Parameter, weights::SimpleDispatchInfo, storage::IterableStorageDoubleMap,
+    decl_error, decl_event, decl_module, decl_storage, ensure,IterableStorageDoubleMap,
+    dispatch::Parameter, weights::SimpleDispatchInfo, //storage::IterableStorageDoubleMap,
     traits::{Currency, ReservableCurrency, ExistenceRequirement::AllowDeath},
     sp_runtime::{DispatchResult, DispatchError, traits::{AtLeast32Bit, MaybeSerializeDeserialize, Member, One, Zero}}
 };
@@ -40,7 +40,7 @@ decl_storage! {
     trait Store for Module<T: Trait> as AuctionModule {
         pub Auctions get(fn auctions): map hasher(twox_64_concat) T::AuctionId => Option<AuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber>>;
         pub AuctionsIndex get(fn auctions_index): T::AuctionId;
-        pub AuctionEndTime get(fn auction_end_time): double_map hasher(twox_64_concat) T::BlockNumber, hasher(twox_64_concat) T::AuctionId => Option<()>;
+        pub AuctionEndTime get(fn auction_end_time): double_map hasher(twox_64_concat) T::BlockNumber, hasher(twox_64_concat) T::AuctionId => Option<bool>;
 }}
 
 decl_event!(
@@ -129,7 +129,7 @@ decl_module! {
                     <AuctionEndTime<T>>::remove(&old_end_block, id);
                 }
                 if let Some(new_end_block) = new_end {
-                    <AuctionEndTime<T>>::insert(&new_end_block, id, ());
+                    <AuctionEndTime<T>>::insert(&new_end_block, id, true);
                 }
                 auction.end = new_end;
             }
@@ -156,13 +156,13 @@ decl_error! {
 
         AmbitiousReserve,
         AmbitiousTransfer,
-        Unexplained
+        Unexplained,
     }
 }
 
 impl<T: Trait> Module<T> {
     fn _on_finalize(now: T::BlockNumber) {
-        for (auction_id, _) in <AuctionEndTime<T>>::drain(&now) {
+        for (auction_id, _) in <AuctionEndTime<T>>::drain() {
             if let Some(auction) = <Auctions<T>>::take(&auction_id) {
                 T::Handler::on_auction_ended(auction_id, auction.bid.clone());
             }
@@ -191,7 +191,7 @@ impl<T: Trait> Auction<T::AccountId, T::BlockNumber> for Module<T> {
         }
 
         if let Some(new_end) = info.end {
-            <AuctionEndTime<T>>::insert(&new_end, id, ());
+            <AuctionEndTime<T>>::insert(&new_end, id, true);
         }
 
         <Auctions<T>>::insert(id, info);
@@ -209,7 +209,7 @@ impl<T: Trait> Auction<T::AccountId, T::BlockNumber> for Module<T> {
         <AuctionsIndex<T>>::mutate(|n| *n += Self::AuctionId::one());
         <Auctions<T>>::insert(auction_id, auction);
         if let Some(end_block) = end {
-            <AuctionEndTime<T>>::insert(&end_block, auction_id, ());
+            <AuctionEndTime<T>>::insert(&end_block, auction_id, true);
         }
 
         auction_id
