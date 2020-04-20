@@ -138,6 +138,7 @@ decl_module! {
 
             auction.bid = Some((bidder.clone(), value));
             <Auctions<T>>::insert(id, auction);
+            //TODO(Hamza): Reserve value from bidder's balance
             Self::deposit_event(RawEvent::Bid(id, bidder, value));
 
             Ok(())

@@ -1,13 +1,12 @@
 // Creating mock runtime here
 
 use crate::*;
-use orml_traits::auction::*;
-#[allow(unused_imports)]
 use frame_support::{
     assert_err, assert_ok, impl_outer_event, impl_outer_origin, parameter_types,
     traits::BalanceStatus,
 };
 use frame_system::{self as system, RawOrigin};
+use orml_traits::auction::*;
 use pallet_balances::{self as balances};
 use sp_core::{LogLevel, H256};
 use sp_io::{self as io, logging::log};
@@ -53,7 +52,7 @@ impl system::Trait for AuctionTestRuntime {
     type AccountId = u64;
     type Lookup = IdentityLookup<Self::AccountId>;
     type Header = Header;
-    type Event = ();//AuctionTestEvent;
+    type Event = (); //AuctionTestEvent;
     type BlockHashCount = BlockHashCount;
     type MaximumBlockWeight = MaximumBlockWeight;
     type MaximumBlockLength = MaximumBlockLength;
@@ -84,17 +83,16 @@ impl AuctionHandler<AccountId, Balance, BlockNumber, AuctionId> for Handler {
     fn on_auction_ended(_id: AuctionId, _winner: Option<(AccountId, Balance)>) {}
 }
 
-
 impl balances::Trait for AuctionTestRuntime {
     type Balance = Balance;
-    type Event = ();//AuctionTestEvent;
+    type Event = (); //AuctionTestEvent;
     type DustRemoval = ();
     type ExistentialDeposit = ExistentialDeposit;
     type AccountStore = system::Module<AuctionTestRuntime>;
 }
 
 impl Trait for AuctionTestRuntime {
-    type Event = ();//AuctionTestEvent;
+    type Event = (); //AuctionTestEvent;
     type Currency = balances::Module<Self>;
     type AuctionId = AccountId;
     type Handler = Handler;
@@ -103,7 +101,6 @@ impl Trait for AuctionTestRuntime {
 pub type System = system::Module<AuctionTestRuntime>;
 pub type Balances = balances::Module<AuctionTestRuntime>;
 pub type AuctionModule = Module<AuctionTestRuntime>;
-
 
 //mod auction_events {
 //    pub use crate::Event;
@@ -116,11 +113,6 @@ pub type AuctionModule = Module<AuctionTestRuntime>;
 //        balances<T>,
 //    }
 //}
-
-
-
-
-
 
 // This function basically just builds a genesis storage key/value store according to
 // our desired mockup.
