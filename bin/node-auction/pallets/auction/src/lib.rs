@@ -3,7 +3,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Imports
 // /////////////////////////////////////////////////////////////////////////////////////////////
-#[allow(unused_import)]
+#[allow(unused_imports)]
 use frame_support::{
     decl_error,
     decl_event,
@@ -20,11 +20,13 @@ use frame_support::{
     IterableStorageDoubleMap,
 };
 
-#[allow(unused_import)]
+#[allow(unused_imports)]
 use frame_system::{self as system, ensure_signed};
 
-#[allow(unused_import)]
+#[allow(unused_imports)]
 use orml_traits::auction::{Auction, AuctionHandler, AuctionInfo};
+
+use serde;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -49,7 +51,7 @@ pub trait Trait: system::Trait + Sized {
 
 decl_storage! {
     trait Store for Module<T: Trait> as AuctionModule {
-        pub Auctions get(fn auctions): map hasher(twox_64_concat) T::AuctionId => Option<AuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber>>;
+        pub Auctions get(fn auctions) config(): map hasher(twox_64_concat) T::AuctionId => Option<AuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber>>;
         pub AuctionsIndex get(fn auctions_index): T::AuctionId;
         pub AuctionEndTime get(fn auction_end_time): double_map hasher(twox_64_concat) T::BlockNumber, hasher(twox_64_concat) T::AuctionId => Option<bool>;
 }}

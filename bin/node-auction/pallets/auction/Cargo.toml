@@ -42,6 +42,10 @@ default-features = false
 version = "2.0.0-alpha.6"
 path = "../../../../primitives/runtime"
 
+[dependencies.serde]
+version = "1.0.101"
+optional = true
+
 ############################################
 ## Dev deps
 ############################################
@@ -59,6 +63,7 @@ path = "../../../../primitives/io"
 [features]
 default = ['std']
 std = [
+  'serde',
 	'parity-scale-codec/std',
 	'frame-support/std',
 	'frame-system/std',
