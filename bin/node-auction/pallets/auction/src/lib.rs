@@ -52,9 +52,27 @@ pub trait Trait: system::Trait + Sized {
 decl_storage! {
     trait Store for Module<T: Trait> as AuctionModule {
         pub Auctions get(fn auctions) config(): map hasher(twox_64_concat) T::AuctionId => Option<AuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber>>;
-        pub AuctionsIndex get(fn auctions_index): T::AuctionId;
-        pub AuctionEndTime get(fn auction_end_time): double_map hasher(twox_64_concat) T::BlockNumber, hasher(twox_64_concat) T::AuctionId => Option<bool>;
-}}
+        pub AuctionsIndex get(fn auctions_index) config(): T::AuctionId;
+        pub AuctionEndTime get(fn auction_end_time) config(): double_map hasher(twox_64_concat) T::BlockNumber, hasher(twox_64_concat) T::AuctionId => Option<bool>;
+    }
+        add_extra_genesis {
+                               //       Owner           Start           End
+            config(_auctions): Vec<(T::AccountId, T::BlockNumber, T::BlockNumber)>;
+
+            build(|config: &GenesisConfig<T>| {
+                for (_, start, end) in &config._auctions {
+                    //assert!(
+                    //    *start > 0,
+                    //    "Starting block has to be greater than 0",
+                    //);
+                    //assert!(
+                    //    *end > *start,
+                    //    "Ending block has to be greater than the starting block",
+                    //);
+                }
+            });
+    }
+}
 
 decl_event!(
     pub enum Event<T>
@@ -96,8 +114,8 @@ decl_module! {
             let bid_result = T::Handler::on_new_bid(block_number, id, (bidder.clone(), value), auction.bid.clone());
 
             ensure!(bid_result.accept_bid, Error::<T>::BidNotAccepted);
-            
-            // 
+
+            //
             if let Some(new_end) = bid_result.auction_end {
                 if let Some(old_end_block) = auction.end {
                     <AuctionEndTime<T>>::remove(&old_end_block, id);
@@ -157,7 +175,11 @@ impl<T: Trait> Module<T> {
         Ok(())
     }
 
-    pub fn transfer_funds(from: T::AccountId, to: T::AccountId, amount: BalanceOf<T>) -> DispatchResult {
+    pub fn transfer_funds(
+        from: T::AccountId,
+        to: T::AccountId,
+        amount: BalanceOf<T>,
+    ) -> DispatchResult {
         T::Currency::transfer(&from, &to, amount, AllowDeath)?;
 
         let now = <system::Module<T>>::block_number();

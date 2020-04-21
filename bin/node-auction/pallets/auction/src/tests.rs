@@ -128,6 +128,13 @@ fn run_to_block(n: u64) {
     }
 }
 
+
+pub struct EnvBuilder {
+    balances: Vec<(u128, u64)>,
+    auctions: Vec<(AccountId, BlockNumber, BlockNumber)>,
+}
+
+
 // This function basically just builds a genesis storage key/value store according to
 // our desired mockup.
 pub fn new_test_ext() -> sp_io::TestExternalities {
@@ -139,7 +146,6 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
     }
     .assimilate_storage(&mut t)
     .unwrap();
-
     t.into()
 }
 
