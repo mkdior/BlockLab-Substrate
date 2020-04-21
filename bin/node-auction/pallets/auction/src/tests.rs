@@ -74,6 +74,7 @@ impl AuctionHandler<AccountId, Balance, BlockNumber, AuctionId> for Handler {
         _new_bid: (AccountId, Balance),
         _last_bid: Option<(AccountId, Balance)>,
     ) -> OnNewBidResult<BlockNumber> {
+        // Test the sending of balances here. 
         OnNewBidResult {
             accept_bid: true,
             auction_end: None,
@@ -207,3 +208,11 @@ fn new_test_ext_repatriate_reserved() {
     })
 }
 ///////////////////////////////////////////////////////
+// Auction related tests
+///////////////////////////////////////////////////////
+#[test]
+fn new_test_ext_new_auction() {
+    new_test_ext().execute_with(|| {
+        let (one, two, three) = (AuctionModule::new_auction(1, Some(100)), AuctionModule::new_auction(2, Some(100)), AuctionModule::new_auction(3, Some(100)));
+    })
+}

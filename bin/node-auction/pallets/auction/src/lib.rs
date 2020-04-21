@@ -5,10 +5,19 @@
 // /////////////////////////////////////////////////////////////////////////////////////////////
 #[allow(unused_import)]
 use frame_support::{
-    decl_error, decl_event, decl_module, decl_storage, ensure,IterableStorageDoubleMap,
-    dispatch::Parameter, weights::SimpleDispatchInfo, //storage::IterableStorageDoubleMap,
-    traits::{Currency, ReservableCurrency, ExistenceRequirement::AllowDeath},
-    sp_runtime::{DispatchResult, DispatchError, traits::{AtLeast32Bit, MaybeSerializeDeserialize, Member, One, Zero}}
+    decl_error,
+    decl_event,
+    decl_module,
+    decl_storage,
+    dispatch::Parameter,
+    ensure,
+    sp_runtime::{
+        traits::{AtLeast32Bit, MaybeSerializeDeserialize, Member, One, Zero},
+        DispatchError, DispatchResult,
+    },
+    traits::{Currency, ExistenceRequirement::AllowDeath, ReservableCurrency},
+    weights::SimpleDispatchInfo, //storage::IterableStorageDoubleMap,
+    IterableStorageDoubleMap,
 };
 
 #[allow(unused_import)]
@@ -66,46 +75,6 @@ decl_module! {
 
         fn deposit_event() = default;
 
-        // TODO(Hamza):
-        // https://github.com/substrate-developer-hub/recipes/blob/master/pallets/weights/src/lib.rs
-        #[weight = SimpleDispatchInfo::FixedNormal(100)]
-        pub fn lock_funds(origin, amount: BalanceOf<T>) -> DispatchResult {
-            let target = ensure_signed(origin)?;
-
-            //TODO(Hamza): Serve proper errors. Also perhaps implement Currency for our local trait
-            // to avoid the use of Currency::X
-            T::Currency::reserve(&target, amount).map_err(|_| "Not able to reserve");
-
-            let now = <system::Module<T>>::block_number();
-
-            Self::deposit_event(RawEvent::LockFunds(target, amount, now));
-            Ok(())
-        }
-
-        #[weight = SimpleDispatchInfo::FixedNormal(100)]
-        pub fn unlock_funds(origin, amount: BalanceOf<T>) -> DispatchResult {
-            let target = ensure_signed(origin)?;
-
-            T::Currency::unreserve(&target, amount);
-
-            let now = <system::Module<T>>::block_number();
-
-            Self::deposit_event(RawEvent::UnlockFunds(target, amount, now));
-            Ok(())
-        }
-
-        #[weight = SimpleDispatchInfo::FixedNormal(100)]
-        pub fn transfer_funds(origin, dest: T::AccountId, amount: BalanceOf<T>) -> DispatchResult {
-            let sender = ensure_signed(origin)?;
-
-            T::Currency::transfer(&sender, &dest, amount, AllowDeath)?;
-
-            let now = <system::Module<T>>::block_number();
-
-            Self::deposit_event(RawEvent::TransferFunds(sender, dest, amount, now));
-            Ok(())
-        }
-
         #[weight = SimpleDispatchInfo::FixedNormal(100)]
         pub fn bid(origin, id: T::AuctionId, #[compact] value: BalanceOf<T>) -> DispatchResult {
             let bidder = ensure_signed(origin)?;
@@ -125,7 +94,8 @@ decl_module! {
             let bid_result = T::Handler::on_new_bid(block_number, id, (bidder.clone(), value), auction.bid.clone());
 
             ensure!(bid_result.accept_bid, Error::<T>::BidNotAccepted);
-
+            
+            // 
             if let Some(new_end) = bid_result.auction_end {
                 if let Some(old_end_block) = auction.end {
                     <AuctionEndTime<T>>::remove(&old_end_block, id);
@@ -138,7 +108,6 @@ decl_module! {
 
             auction.bid = Some((bidder.clone(), value));
             <Auctions<T>>::insert(id, auction);
-            //TODO(Hamza): Reserve value from bidder's balance
             Self::deposit_event(RawEvent::Bid(id, bidder, value));
 
             Ok(())
@@ -164,6 +133,37 @@ decl_error! {
 }
 
 impl<T: Trait> Module<T> {
+    // TODO(Hamza):
+    // https://github.com/substrate-developer-hub/recipes/blob/master/pallets/weights/src/lib.rs
+    pub fn reserve_funds(target: T::AccountId, amount: BalanceOf<T>) -> DispatchResult {
+        //TODO(Hamza): Serve proper errors. Also perhaps implement Currency for our local trait
+        // to avoid the use of Currency::X
+        T::Currency::reserve(&target, amount).map_err(|_| "Not able to reserve");
+
+        let now = <system::Module<T>>::block_number();
+
+        Self::deposit_event(RawEvent::LockFunds(target, amount, now));
+        Ok(())
+    }
+
+    pub fn unreserve_funds(target: T::AccountId, amount: BalanceOf<T>) -> DispatchResult {
+        T::Currency::unreserve(&target, amount);
+
+        let now = <system::Module<T>>::block_number();
+
+        Self::deposit_event(RawEvent::UnlockFunds(target, amount, now));
+        Ok(())
+    }
+
+    pub fn transfer_funds(from: T::AccountId, to: T::AccountId, amount: BalanceOf<T>) -> DispatchResult {
+        T::Currency::transfer(&from, &to, amount, AllowDeath)?;
+
+        let now = <system::Module<T>>::block_number();
+
+        Self::deposit_event(RawEvent::TransferFunds(from, to, amount, now));
+        Ok(())
+    }
+
     fn _on_finalize(now: T::BlockNumber) {
         for (auction_id, _) in <AuctionEndTime<T>>::drain_prefix(&now) {
             if let Some(auction) = <Auctions<T>>::take(&auction_id) {

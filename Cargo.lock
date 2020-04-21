@@ -4606,7 +4606,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std",
+ "sp-std 2.0.0-dev",
  "sp-storage",
 ]
 
@@ -7544,7 +7544,7 @@ dependencies = [
  "rand 0.7.3",
  "sp-phragmen",
  "sp-runtime",
- "sp-std",
+ "sp-std 2.0.0-dev",
 ]
 
 [[package]]
@@ -7575,7 +7575,7 @@ dependencies = [
  "sp-inherents",
  "sp-io",
  "sp-state-machine",
- "sp-std",
+ "sp-std 2.0.0-dev",
 ]
 
 [[package]]
