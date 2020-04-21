@@ -74,7 +74,7 @@ impl AuctionHandler<AccountId, Balance, BlockNumber, AuctionId> for Handler {
         _new_bid: (AccountId, Balance),
         _last_bid: Option<(AccountId, Balance)>,
     ) -> OnNewBidResult<BlockNumber> {
-        // Test the sending of balances here. 
+        // Test the sending of balances here.
         OnNewBidResult {
             accept_bid: true,
             auction_end: None,
@@ -114,6 +114,19 @@ pub type AuctionModule = Module<AuctionTestRuntime>;
 //        balances<T>,
 //    }
 //}
+
+// Simulating block production for the general auction tests
+fn run_to_block(n: u64) {
+    while System::block_number() < n {
+        AuctionModule::_on_finalize(System::block_number());
+        //System::on_finalize(System::block_number());
+        System::set_block_number(System::block_number() + 1);
+        //System::on_initialize(System::block_number());
+        
+        // If needed, initialize our auction
+        // AuctionModule::on_intitialize(System::block_number());
+    }
+}
 
 // This function basically just builds a genesis storage key/value store according to
 // our desired mockup.
@@ -213,6 +226,10 @@ fn new_test_ext_repatriate_reserved() {
 #[test]
 fn new_test_ext_new_auction() {
     new_test_ext().execute_with(|| {
-        let (one, two, three) = (AuctionModule::new_auction(1, Some(100)), AuctionModule::new_auction(2, Some(100)), AuctionModule::new_auction(3, Some(100)));
+        let (one, two, three) = (
+            AuctionModule::new_auction(1, Some(100)),
+            AuctionModule::new_auction(2, Some(100)),
+            AuctionModule::new_auction(3, Some(100)),
+        );
     })
 }
