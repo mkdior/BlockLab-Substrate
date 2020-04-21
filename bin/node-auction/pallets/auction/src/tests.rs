@@ -122,27 +122,40 @@ fn run_to_block(n: u64) {
         //System::on_finalize(System::block_number());
         System::set_block_number(System::block_number() + 1);
         //System::on_initialize(System::block_number());
-        
+
         // If needed, initialize our auction
         // AuctionModule::on_intitialize(System::block_number());
     }
 }
 
-
 pub struct EnvBuilder {
-    balances: Vec<(u128, u64)>,
+    balances: Vec<(u64, u64)>,
     auctions: Vec<(AccountId, BlockNumber, BlockNumber)>,
 }
 
+impl EnvBuilder {
+    pub fn new() -> Self {
+        Self {
+            balances: vec![(1, 20000), (2, 20000), (3, 20000), (4, 20000), (5, 20000)],
+            auctions: vec![(1, 1, 50), (2, 1, 50), (3, 1, 50), (4, 1, 50)],
+        }
+    }
+}
 
 // This function basically just builds a genesis storage key/value store according to
 // our desired mockup.
 pub fn new_test_ext() -> sp_io::TestExternalities {
+    let core = EnvBuilder::new();
     let mut t = system::GenesisConfig::default()
         .build_storage::<AuctionTestRuntime>()
         .unwrap();
     balances::GenesisConfig::<AuctionTestRuntime> {
-        balances: vec![(1, 20000), (2, 20000), (3, 20000), (4, 20000), (5, 20000)],
+        balances: core.balances,
+    }
+    .assimilate_storage(&mut t)
+    .unwrap();
+    GenesisConfig::<AuctionTestRuntime> {
+        _auctions: core.auctions,
     }
     .assimilate_storage(&mut t)
     .unwrap();
@@ -232,10 +245,9 @@ fn new_test_ext_repatriate_reserved() {
 #[test]
 fn new_test_ext_new_auction() {
     new_test_ext().execute_with(|| {
-        let (one, two, three) = (
-            AuctionModule::new_auction(1, Some(100)),
-            AuctionModule::new_auction(2, Some(100)),
-            AuctionModule::new_auction(3, Some(100)),
-        );
+        assert!(AuctionModule::auction_exists(1), true);;
+        assert!(AuctionModule::auction_exists(2), true);;
+        assert!(AuctionModule::auction_exists(3), true);;
+        assert!(AuctionModule::auction_exists(0), true);;
     })
 }

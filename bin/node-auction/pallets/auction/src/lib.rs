@@ -51,25 +51,26 @@ pub trait Trait: system::Trait + Sized {
 
 decl_storage! {
     trait Store for Module<T: Trait> as AuctionModule {
-        pub Auctions get(fn auctions) config(): map hasher(twox_64_concat) T::AuctionId => Option<AuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber>>;
-        pub AuctionsIndex get(fn auctions_index) config(): T::AuctionId;
-        pub AuctionEndTime get(fn auction_end_time) config(): double_map hasher(twox_64_concat) T::BlockNumber, hasher(twox_64_concat) T::AuctionId => Option<bool>;
+        // pub Auction get(fn auctions) config() <-- requires you to set the initial values in
+        // Genesis configured for this runtime
+        pub Auctions get(fn auctions): map hasher(twox_64_concat) T::AuctionId => Option<AuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber>>;
+        pub AuctionsIndex get(fn auctions_index): T::AuctionId;
+        pub AuctionEndTime get(fn auction_end_time): double_map hasher(twox_64_concat) T::BlockNumber, hasher(twox_64_concat) T::AuctionId => Option<bool>;
     }
         add_extra_genesis {
-                               //       Owner           Start           End
-            config(_auctions): Vec<(T::AccountId, T::BlockNumber, T::BlockNumber)>;
+                               //                       Start           End
+            config(_auctions): Vec<(T::AuctionId, T::BlockNumber, T::BlockNumber)>;
 
             build(|config: &GenesisConfig<T>| {
                 for (_, start, end) in &config._auctions {
-                    //assert!(
-                    //    *start > 0,
-                    //    "Starting block has to be greater than 0",
-                    //);
-                    //assert!(
-                    //    *end > *start,
-                    //    "Ending block has to be greater than the starting block",
-                    //);
+                    assert!(
+                        *end > *start,
+                        "Ending block has to be greater than the starting block",
+                    );
                 }
+                for &(ref id, ref start, ref end) in config._auctions.iter() {
+                    <Module<T>>::new_auction(*start, Some(*end));
+                    }
             });
     }
 }
@@ -186,6 +187,10 @@ impl<T: Trait> Module<T> {
 
         Self::deposit_event(RawEvent::TransferFunds(from, to, amount, now));
         Ok(())
+    }
+
+    fn auction_exists( id: T::AuctionId ) -> bool {
+        <Auctions<T>>::contains_key(id)
     }
 
     fn _on_finalize(now: T::BlockNumber) {
