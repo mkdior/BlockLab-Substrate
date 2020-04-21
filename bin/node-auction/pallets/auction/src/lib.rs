@@ -96,8 +96,8 @@ decl_module! {
             let bid_result = T::Handler::on_new_bid(block_number, id, (bidder.clone(), value), auction.bid.clone());
 
             ensure!(bid_result.accept_bid, Error::<T>::BidNotAccepted);
-            
-            // 
+
+            //
             if let Some(new_end) = bid_result.auction_end {
                 if let Some(old_end_block) = auction.end {
                     <AuctionEndTime<T>>::remove(&old_end_block, id);
@@ -157,7 +157,11 @@ impl<T: Trait> Module<T> {
         Ok(())
     }
 
-    pub fn transfer_funds(from: T::AccountId, to: T::AccountId, amount: BalanceOf<T>) -> DispatchResult {
+    pub fn transfer_funds(
+        from: T::AccountId,
+        to: T::AccountId,
+        amount: BalanceOf<T>,
+    ) -> DispatchResult {
         T::Currency::transfer(&from, &to, amount, AllowDeath)?;
 
         let now = <system::Module<T>>::block_number();
