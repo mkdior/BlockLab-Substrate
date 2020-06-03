@@ -3,7 +3,7 @@
 use crate::*;
 use frame_support::{
     assert_err, assert_ok, impl_outer_event, impl_outer_origin, parameter_types,
-    traits::BalanceStatus,
+    traits::{BalanceStatus, OnInitialize, OnFinalize},
 };
 use frame_system::{self as system, RawOrigin};
 use orml_traits::auction::*;
@@ -118,10 +118,10 @@ pub type AuctionModule = Module<AuctionTestRuntime>;
 // Simulating block production for the general auction tests
 fn run_to_block(n: u64) {
     while System::block_number() < n {
-        AuctionModule::_on_finalize(System::block_number());
-        //System::on_finalize(System::block_number());
+        AuctionModule::on_finalize(System::block_number());
+        System::on_finalize(System::block_number());
         System::set_block_number(System::block_number() + 1);
-        //System::on_initialize(System::block_number());
+        System::on_initialize(System::block_number());
 
         // If needed, initialize our auction
         // AuctionModule::on_intitialize(System::block_number());
@@ -245,9 +245,23 @@ fn new_test_ext_repatriate_reserved() {
 #[test]
 fn new_test_ext_new_auction() {
     new_test_ext().execute_with(|| {
-        assert!(AuctionModule::auction_exists(1), true);;
-        assert!(AuctionModule::auction_exists(2), true);;
-        assert!(AuctionModule::auction_exists(3), true);;
-        assert!(AuctionModule::auction_exists(0), true);;
+        assert!(AuctionModule::auction_exists(1), true);
+        assert!(AuctionModule::auction_exists(2), true);
+        assert!(AuctionModule::auction_exists(3), true);
+        assert!(AuctionModule::auction_exists(0), true);
+    })
+}
+
+#[test]
+fn new_test_ext_auction_info() {
+    new_test_ext().execute_with(|| {
+        // Auction Active up untill block n 50
+        assert!(AuctionModule::auction_exists(1), true);
+        let info = AuctionModule::auction_info(1);
+        println!("{:?}", info); 
+        run_to_block(90);
+        println!("{}", System::block_number());
+        assert!(AuctionModule::auction_exists(1), true);
+        
     })
 }

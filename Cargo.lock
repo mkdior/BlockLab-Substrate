@@ -1452,7 +1452,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std",
+ "sp-std 2.0.0-dev",
  "sp-tracing",
  "sp-version",
 ]
@@ -1488,7 +1488,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-state-machine",
- "sp-std",
+ "sp-std 2.0.0-dev",
  "sp-tracing",
 ]
 
@@ -7631,7 +7631,7 @@ dependencies = [
  "sp-runtime-interface-proc-macro",
  "sp-runtime-interface-test-wasm",
  "sp-state-machine",
- "sp-std",
+ "sp-std 2.0.0-dev",
  "sp-tracing",
  "sp-wasm-interface",
  "static_assertions",
