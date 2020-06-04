@@ -83,21 +83,21 @@ decl_event!(
         BlockNumber = <T as system::Trait>::BlockNumber,
         AuctionId = <T as Trait>::AuctionId,
     {
-        /// #### Currency Events
-        /// Called when funds are reserved (e.g. when placing a bid)
+        // Currency Events
+        // Called when funds are reserved (e.g. when placing a bid)
         LockFunds(AccountId, Balance, BlockNumber),
-        /// Called when releasing reserved funds.
+        // Called when releasing reserved funds.
         UnlockFunds(AccountId, Balance, BlockNumber),
-        /// Called when transfering released funds.
+        // Called when transfering released funds.
         TransferFunds(AccountId, AccountId, Balance, BlockNumber),
-        /// #### Auction Events
-        /// Called when a bid is placed.
+        // Auction Events
+        // Called when a bid is placed.
         Bid(AuctionId, AccountId, Balance),
-        /// Called when an auction ends with 1+ bids.
+        // Called when an auction ends with 1+ bids.
         AuctionEndDecided(), 
-        /// Called when an auction ends with 0 bids.
+        // Called when an auction ends with 0 bids.
         AuctionEndUndecided(),
-        /// #### Other Events
+        // Other Events
     }
 );
 

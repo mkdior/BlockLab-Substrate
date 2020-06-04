@@ -75,6 +75,12 @@ impl AuctionHandler<AccountId, Balance, BlockNumber, AuctionId> for Handler {
         _last_bid: Option<(AccountId, Balance)>,
     ) -> OnNewBidResult<BlockNumber> {
         // Test the sending of balances here.
+
+        if let Some(bid) = _last_bid {
+            println!("Last bid information [{:?}] \n Current bid information [{:?}]", bid, _new_bid);
+        } else let None = _last_bid {
+            println!("First bid on auction [{:?}]", _id);
+        }
         OnNewBidResult {
             accept_bid: true,
             auction_end: None,
@@ -84,7 +90,13 @@ impl AuctionHandler<AccountId, Balance, BlockNumber, AuctionId> for Handler {
     fn on_auction_ended(_id: AuctionId, _winner: Option<(AccountId, Balance)>) {
         //TODO:: Announce how the auction has ender.
         //  -- Were there any bidders
-        //  -- If there were bidders, who won
+        if let Some(winner) = _winner {
+            // Somebody has won, notify
+            println("The winner: {:?}", winner);
+        } else if let None = _winner {
+            // Nobody has won, notify
+            println!("There were no bids, nobody has won");
+        }
     }
 }
 
