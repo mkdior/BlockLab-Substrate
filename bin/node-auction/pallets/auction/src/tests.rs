@@ -52,7 +52,7 @@ impl system::Trait for AuctionTestRuntime {
     type AccountId = u64;
     type Lookup = IdentityLookup<Self::AccountId>;
     type Header = Header;
-    type Event = (); //AuctionTestEvent;
+    type Event = AuctionTestEvent;
     type BlockHashCount = BlockHashCount;
     type MaximumBlockWeight = MaximumBlockWeight;
     type MaximumBlockLength = MaximumBlockLength;
@@ -77,9 +77,10 @@ impl AuctionHandler<AccountId, Balance, BlockNumber, AuctionId> for Handler {
         // Test the sending of balances here.
 
         if let Some(bid) = _last_bid {
-            println!("Last bid information [{:?}] \n Current bid information [{:?}]", bid, _new_bid);
-        } else let None = _last_bid {
-            println!("First bid on auction [{:?}]", _id);
+            println!("Last bid information [{0:#?}] \
+                Current bid information [{1:#?}]", bid, _new_bid);
+        } else if let None = _last_bid {
+            println!("First bid on auction [{:#?}]", _id);
         }
         OnNewBidResult {
             accept_bid: true,
@@ -92,7 +93,8 @@ impl AuctionHandler<AccountId, Balance, BlockNumber, AuctionId> for Handler {
         //  -- Were there any bidders
         if let Some(winner) = _winner {
             // Somebody has won, notify
-            println("The winner: {:?}", winner);
+            AuctionModule::deposit_event(RawEvent::DummyEvent());
+            println!("The winner: {:?}", winner);
         } else if let None = _winner {
             // Nobody has won, notify
             println!("There were no bids, nobody has won");
@@ -102,14 +104,14 @@ impl AuctionHandler<AccountId, Balance, BlockNumber, AuctionId> for Handler {
 
 impl balances::Trait for AuctionTestRuntime {
     type Balance = Balance;
-    type Event = (); //AuctionTestEvent;
+    type Event = AuctionTestEvent;
     type DustRemoval = ();
     type ExistentialDeposit = ExistentialDeposit;
     type AccountStore = system::Module<AuctionTestRuntime>;
 }
 
 impl Trait for AuctionTestRuntime {
-    type Event = (); //AuctionTestEvent;
+    type Event = AuctionTestEvent;
     type Currency = balances::Module<Self>;
     type AuctionId = AccountId;
     type Handler = Handler;

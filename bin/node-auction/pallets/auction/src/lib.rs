@@ -94,10 +94,11 @@ decl_event!(
         // Called when a bid is placed.
         Bid(AuctionId, AccountId, Balance),
         // Called when an auction ends with 1+ bids.
-        AuctionEndDecided(), 
+        AuctionEndDecided(AccountId, AuctionId), 
         // Called when an auction ends with 0 bids.
-        AuctionEndUndecided(),
+        AuctionEndUndecided(AuctionId),
         // Other Events
+        DummyEvent(),
     }
 );
 
