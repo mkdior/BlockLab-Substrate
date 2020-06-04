@@ -81,7 +81,11 @@ impl AuctionHandler<AccountId, Balance, BlockNumber, AuctionId> for Handler {
         }
     }
 
-    fn on_auction_ended(_id: AuctionId, _winner: Option<(AccountId, Balance)>) {}
+    fn on_auction_ended(_id: AuctionId, _winner: Option<(AccountId, Balance)>) {
+        //TODO:: Announce how the auction has ender.
+        //  -- Were there any bidders
+        //  -- If there were bidders, who won
+    }
 }
 
 impl balances::Trait for AuctionTestRuntime {
@@ -118,6 +122,7 @@ pub type AuctionModule = Module<AuctionTestRuntime>;
 // Simulating block production for the general auction tests
 fn run_to_block(n: u64) {
     while System::block_number() < n {
+        println!("Block Number: {:?}", System::block_number());
         AuctionModule::on_finalize(System::block_number());
         System::on_finalize(System::block_number());
         System::set_block_number(System::block_number() + 1);
@@ -137,7 +142,7 @@ impl EnvBuilder {
     pub fn new() -> Self {
         Self {
             balances: vec![(1, 20000), (2, 20000), (3, 20000), (4, 20000), (5, 20000)],
-            auctions: vec![(1, 1, 50), (2, 1, 50), (3, 1, 50), (4, 1, 50)],
+            auctions: vec![(1, 1, 49), (2, 1, 51), (3, 1, 150), (4, 1, 250)],
         }
     }
 }
@@ -255,13 +260,9 @@ fn new_test_ext_new_auction() {
 #[test]
 fn new_test_ext_auction_info() {
     new_test_ext().execute_with(|| {
-        // Auction Active up untill block n 50
-        assert!(AuctionModule::auction_exists(1), true);
-        let info = AuctionModule::auction_info(1);
-        println!("{:?}", info); 
-        run_to_block(90);
-        println!("{}", System::block_number());
-        assert!(AuctionModule::auction_exists(1), true);
-        
+        // Auction 0 -- Block 49
+        //println!("{:?}", AuctionModule::auction_info(0));
+        // Run to block 50, which should end auction 0
+        run_to_block(55);
     })
 }

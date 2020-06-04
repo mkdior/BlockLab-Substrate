@@ -194,9 +194,15 @@ impl<T: Trait> Module<T> {
     }
 
     fn _on_finalize(now: T::BlockNumber) {
+        // Look and see if current BlockNumber is in AuctionEndTime
         for (auction_id, _) in <AuctionEndTime<T>>::drain_prefix(&now) {
+            // Drain_prefix removes all keys under the specified blocknumber ^^
             if let Some(auction) = <Auctions<T>>::take(&auction_id) {
-       //         T::Handler::on_auction_ended(auction_id, auction.bid.clone());
+                println!("Current auction in processing : {:?}", auction);
+                T::Handler::on_auction_ended(auction_id, auction.bid.clone());
+            } else if let None = <Auctions<T>>::take(&auction_id) {
+                // Auction_id not found, something went wrong here.          
+                println!("Something went wrong"); // For testing purposes.
             }
         }
     }
