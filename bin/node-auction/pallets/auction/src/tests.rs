@@ -107,17 +107,17 @@ pub type System = system::Module<AuctionTestRuntime>;
 pub type Balances = balances::Module<AuctionTestRuntime>;
 pub type AuctionModule = Module<AuctionTestRuntime>;
 
-//mod auction_events {
-//    pub use crate::Event;
-//}
-//
-//impl_outer_event! {
-//    pub enum AuctionTestEvent for AuctionTestRuntime {
-//        auction_events<T>,
-//        system<T>,
-//        balances<T>,
-//    }
-//}
+mod auction_events {
+    pub use crate::Event;
+}
+
+impl_outer_event! {
+    pub enum AuctionTestEvent for AuctionTestRuntime {
+        auction_events<T>,
+        system<T>,
+        balances<T>,
+    }
+}
 
 // Simulating block production for the general auction tests
 fn run_to_block(n: u64) {
@@ -141,8 +141,22 @@ pub struct EnvBuilder {
 impl EnvBuilder {
     pub fn new() -> Self {
         Self {
-            balances: vec![(1, 20000), (2, 20000), (3, 20000), (4, 20000), (5, 20000)],
-            auctions: vec![(1, 1, 49), (2, 1, 51), (3, 1, 150), (4, 1, 250)],
+            balances: vec![
+                (1, 20000), // Terminal 
+                (2, 20000), // Terminal 
+                (3, 20000), // Terminal 
+                (4, 20000), // Terminal 
+                (5, 40000), // Barge
+                (6, 40000), // Barge
+                (7, 40000), // Barge
+                (8, 40000), // Barge
+            ],
+            auctions: vec![
+                (1, 1, 49), // (Price,StartBlock,EndBlock)
+                (2, 1, 51), 
+                (3, 1, 150), 
+                (4, 1, 250)
+            ],
         }
     }
 }
@@ -250,10 +264,10 @@ fn new_test_ext_repatriate_reserved() {
 #[test]
 fn new_test_ext_new_auction() {
     new_test_ext().execute_with(|| {
-        assert!(AuctionModule::auction_exists(1), true);
-        assert!(AuctionModule::auction_exists(2), true);
-        assert!(AuctionModule::auction_exists(3), true);
-        assert!(AuctionModule::auction_exists(0), true);
+        assert_eq!(AuctionModule::auction_exists(0), true);
+        assert_eq!(AuctionModule::auction_exists(1), true);
+        assert_eq!(AuctionModule::auction_exists(2), true);
+        assert_eq!(AuctionModule::auction_exists(3), true);
     })
 }
 
@@ -261,8 +275,13 @@ fn new_test_ext_new_auction() {
 fn new_test_ext_auction_info() {
     new_test_ext().execute_with(|| {
         // Auction 0 -- Block 49
-        //println!("{:?}", AuctionModule::auction_info(0));
-        // Run to block 50, which should end auction 0
+        // Auction 1 -- Block 51
+        assert_eq!(AuctionModule::auction_exists(0), true);
+        assert_eq!(AuctionModule::auction_exists(1), true);
+        // Run to block 55, which should end auction 0 && 1
         run_to_block(55);
+        // At this point auction 0 and 1 should be dumped.
+        assert_eq!(AuctionModule::auction_exists(0), false);
+        assert_eq!(AuctionModule::auction_exists(1), false);
     })
 }
