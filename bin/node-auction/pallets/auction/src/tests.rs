@@ -3,7 +3,7 @@
 use crate::*;
 use frame_support::{
     assert_err, assert_ok, impl_outer_event, impl_outer_origin, parameter_types,
-    traits::{BalanceStatus, OnInitialize, OnFinalize},
+    traits::{BalanceStatus, OnFinalize, OnInitialize},
 };
 use frame_system::{self as system, RawOrigin};
 use orml_traits::auction::*;
@@ -77,8 +77,11 @@ impl AuctionHandler<AccountId, Balance, BlockNumber, AuctionId> for Handler {
         // Test the sending of balances here.
 
         if let Some(bid) = _last_bid {
-            println!("Last bid information [{0:#?}] \
-                Current bid information [{1:#?}]", bid, _new_bid);
+            println!(
+                "Last bid information [{0:#?}] \
+                Current bid information [{1:#?}]",
+                bid, _new_bid
+            );
         } else if let None = _last_bid {
             println!("First bid on auction [{:#?}]", _id);
         }
@@ -93,10 +96,11 @@ impl AuctionHandler<AccountId, Balance, BlockNumber, AuctionId> for Handler {
         //  -- Were there any bidders
         if let Some(winner) = _winner {
             // Somebody has won, notify
-            AuctionModule::deposit_event(RawEvent::DummyEvent());
+            AuctionModule::deposit_event(RawEvent::AuctionEndDecided(winner.0, _id));
             println!("The winner: {:?}", winner);
         } else if let None = _winner {
             // Nobody has won, notify
+            AuctionModule::deposit_event(RawEvent::AuctionEndUndecided(_id));
             println!("There were no bids, nobody has won");
         }
     }
@@ -156,10 +160,10 @@ impl EnvBuilder {
     pub fn new() -> Self {
         Self {
             balances: vec![
-                (1, 20000), // Terminal 
-                (2, 20000), // Terminal 
-                (3, 20000), // Terminal 
-                (4, 20000), // Terminal 
+                (1, 20000), // Terminal
+                (2, 20000), // Terminal
+                (3, 20000), // Terminal
+                (4, 20000), // Terminal
                 (5, 40000), // Barge
                 (6, 40000), // Barge
                 (7, 40000), // Barge
@@ -167,9 +171,9 @@ impl EnvBuilder {
             ],
             auctions: vec![
                 (1, 1, 49), // (Price,StartBlock,EndBlock)
-                (2, 1, 51), 
-                (3, 1, 150), 
-                (4, 1, 250)
+                (2, 1, 51),
+                (3, 1, 150),
+                (4, 1, 250),
             ],
         }
     }
@@ -286,7 +290,7 @@ fn new_test_ext_new_auction() {
 }
 
 #[test]
-fn new_test_ext_auction_info() {
+fn new_test_ext_auction_expire() {
     new_test_ext().execute_with(|| {
         // Auction 0 -- Block 49
         // Auction 1 -- Block 51
@@ -297,5 +301,21 @@ fn new_test_ext_auction_info() {
         // At this point auction 0 and 1 should be dumped.
         assert_eq!(AuctionModule::auction_exists(0), false);
         assert_eq!(AuctionModule::auction_exists(1), false);
+        let (expiry_1, expiry_2) = (
+            AuctionTestEvent::auction_events(RawEvent::AuctionEndUndecided(0)),
+            AuctionTestEvent::auction_events(RawEvent::AuctionEndUndecided(1)),
+        );
+        assert!(System::events().iter().any(|a| a.event == expiry_1));
+        assert!(System::events().iter().any(|a| a.event == expiry_2));
+    })
+}
+
+#[test]
+fn new_test_ext_auction_bidding() {
+    new_test_ext().execute_with(|| {
+        // Ensure that Auction 0 exists
+        assert_eq!(AuctionModule::auction_exists(0), true);
+        // All barges have 40000 currencies so bid in sequences of 5000
+        assert_ok!(AuctionModule::bid(Origin::signed(5), 0, 5000));
     })
 }
