@@ -24,7 +24,7 @@ use frame_support::{
 use frame_system::{self as system, ensure_signed};
 
 #[allow(unused_imports)]
-use orml_traits::auction::{Auction, AuctionHandler, AuctionInfo};
+use orml_traits::auction::{Auction, AuctionHandler, AuctionInfo, QueuedBid};
 
 use serde;
 
@@ -56,6 +56,8 @@ decl_storage! {
         pub Auctions get(fn auctions): map hasher(twox_64_concat) T::AuctionId => Option<AuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber>>;
         pub AuctionsIndex get(fn auctions_index): T::AuctionId;
         pub AuctionEndTime get(fn auction_end_time): double_map hasher(twox_64_concat) T::BlockNumber, hasher(twox_64_concat) T::AuctionId => Option<bool>;
+
+        pub QueuedBids get(fn queued_bids): map hasher(twox_64_concat) T::BlockNumber => Option<QueuedBid<T::AccountId, T::AuctionId, BalanceOf<T>>>;
     }
         add_extra_genesis {
                                //                       Start           End
@@ -94,7 +96,7 @@ decl_event!(
         // Called when a bid is placed.
         Bid(AuctionId, AccountId, Balance),
         // Called when an auction ends with 1+ bids.
-        AuctionEndDecided(AccountId, AuctionId), 
+        AuctionEndDecided(AccountId, AuctionId),
         // Called when an auction ends with 0 bids.
         AuctionEndUndecided(AuctionId),
         // Other Events
@@ -113,8 +115,18 @@ decl_module! {
             let bidder = ensure_signed(origin)?;
             let mut auction = <Auctions<T>>::get(id).ok_or(Error::<T>::AuctionNotExist)?;
             let block_number = <frame_system::Module<T>>::block_number();
+            println!("Current block_number : {} || Auction start block: {}", block_number, auction.start);
+            // Queue bid if needed and exit.
+            if block_number <= auction.start {
+                let queued_bid = QueuedBid {
+                    bidder: bidder,
+                    bid: value,
+                    AuctionId: Some(id),
+                };
+                <QueuedBids<T>>::insert(auction.start, Some(queued_bid));
 
-            ensure!(block_number >= auction.start, Error::<T>::AuctionNotStarted);
+                return Ok(());
+            }
 
             // The following reads as:
             // let Some .A. = .B. -> if let deconstructs into .A. where the source = .B.
@@ -202,7 +214,7 @@ impl<T: Trait> Module<T> {
         Ok(())
     }
 
-    fn auction_exists( id: T::AuctionId ) -> bool {
+    fn auction_exists(id: T::AuctionId) -> bool {
         <Auctions<T>>::contains_key(id)
     }
 
@@ -214,7 +226,7 @@ impl<T: Trait> Module<T> {
                 println!("Current auction in processing : {:?}", auction);
                 T::Handler::on_auction_ended(auction_id, auction.bid.clone());
             } else if let None = <Auctions<T>>::take(&auction_id) {
-                // Auction_id not found, something went wrong here.          
+                // Auction_id not found, something went wrong here.
                 println!("Something went wrong"); // For testing purposes.
             }
         }

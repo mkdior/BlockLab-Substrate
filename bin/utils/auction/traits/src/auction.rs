@@ -8,7 +8,15 @@ use sp_std::{
     cmp::{Eq, PartialEq},
     fmt::Debug,
 };
-
+/// Queued bid information.
+#[cfg_attr(feature = "std", derive(PartialEq, Eq))]
+#[derive(Encode, Decode, RuntimeDebug)]
+pub struct QueuedBid<AccountId, AuctionId, Balance> {
+    pub bidder: AccountId,
+    pub bid: Balance,
+    // Either map this struct to the starting block or the AuctionId << in this case None it.
+    pub AuctionId: Option<AuctionId>,
+}
 /// Auction info.
 #[cfg_attr(feature = "std", derive(PartialEq, Eq))]
 #[derive(Encode, Decode, RuntimeDebug)]

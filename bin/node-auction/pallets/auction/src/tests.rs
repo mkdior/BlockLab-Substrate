@@ -74,8 +74,6 @@ impl AuctionHandler<AccountId, Balance, BlockNumber, AuctionId> for Handler {
         _new_bid: (AccountId, Balance),
         _last_bid: Option<(AccountId, Balance)>,
     ) -> OnNewBidResult<BlockNumber> {
-        // Test the sending of balances here.
-
         if let Some(bid) = _last_bid {
             println!(
                 "Last bid information [{0:#?}] \
