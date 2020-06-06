@@ -59,7 +59,7 @@ decl_storage! {
         pub AuctionsIndex get(fn auctions_index): T::AuctionId;
         pub AuctionEndTime get(fn auction_end_time): double_map hasher(twox_64_concat) T::BlockNumber, hasher(twox_64_concat) T::AuctionId => Option<bool>;
 
-        pub QueuedBids get(fn queued_bids): map hasher(twox_64_concat) T::BlockNumber => Option<QueuedBid<T::AccountId>>;//, T::AuctionId, BalanceOf<T>>>;
+        pub QueuedBids get(fn queued_bids): map hasher(twox_64_concat) T::BlockNumber => Option<QueuedBid<T::AccountId, BalanceOf<T>, T::AuctionId>>;
     }
         add_extra_genesis {
                                //                       Start           End
@@ -121,9 +121,8 @@ decl_module! {
             // Queue bid if needed and exit.
             if block_number <= auction.start {
                 let queued_bid = QueuedBid {
-                    bidder: bidder,
-//                    bid: value,
-//                    auction_id: id,
+                    bid: (bidder, value),
+                    auction_id: id,
                 };
                 <QueuedBids<T>>::insert(auction.start, queued_bid);
 

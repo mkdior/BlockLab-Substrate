@@ -11,10 +11,11 @@ use sp_std::{
 /// Queued bid information.
 #[cfg_attr(feature = "std", derive(PartialEq, Eq))]
 #[derive(Encode, Decode, RuntimeDebug)]
-pub struct QueuedBid<AccountId>{//, Balance, AuctionId> {
-    pub bidder: AccountId,
-//    pub bid: Balance,
-//    pub auction_id: AuctionId,
+pub struct QueuedBid<AccountId, Balance, AuctionId> {
+    /// The bid to be queued.
+    pub bid: (AccountId, Balance),
+    /// The auction this bid is destined for.
+    pub auction_id: AuctionId,
 }
 
 /// Auction info.
