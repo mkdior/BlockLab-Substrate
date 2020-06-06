@@ -1,5 +1,5 @@
 use codec::FullCodec;
-use codec::{Decode, Encode};
+use codec::{Decode, Encode, EncodeLike};
 use sp_runtime::{
     traits::{AtLeast32Bit, MaybeSerializeDeserialize},
     DispatchResult, RuntimeDebug,
@@ -11,12 +11,12 @@ use sp_std::{
 /// Queued bid information.
 #[cfg_attr(feature = "std", derive(PartialEq, Eq))]
 #[derive(Encode, Decode, RuntimeDebug)]
-pub struct QueuedBid<AccountId, AuctionId, Balance> {
+pub struct QueuedBid<AccountId>{//, Balance, AuctionId> {
     pub bidder: AccountId,
-    pub bid: Balance,
-    // Either map this struct to the starting block or the AuctionId << in this case None it.
-    pub AuctionId: Option<AuctionId>,
+//    pub bid: Balance,
+//    pub auction_id: AuctionId,
 }
+
 /// Auction info.
 #[cfg_attr(feature = "std", derive(PartialEq, Eq))]
 #[derive(Encode, Decode, RuntimeDebug)]
