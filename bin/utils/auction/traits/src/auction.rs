@@ -10,7 +10,7 @@ use sp_std::{
 };
 /// Queued bid information.
 #[cfg_attr(feature = "std", derive(PartialEq, Eq))]
-#[derive(Encode, Decode, RuntimeDebug)]
+#[derive(Encode, Decode, RuntimeDebug, Clone)]
 pub struct QueuedBid<AccountId, Balance, AuctionId> {
     /// The bid to be queued.
     pub bid: (AccountId, Balance),
