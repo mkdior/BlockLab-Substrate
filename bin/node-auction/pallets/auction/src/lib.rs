@@ -118,9 +118,6 @@ decl_module! {
             let bidder = ensure_signed(origin)?;
             let mut auction = <Auctions<T>>::get(id).ok_or(Error::<T>::AuctionNotExist)?;
             let block_number = <frame_system::Module<T>>::block_number();
-            println!("###################################");
-            println!("--- BIDDING --- Current block_number : {} || Auction start block: {}", block_number, auction.start);
-            println!("###################################");
             // Queue bid if needed and exit.
             if block_number < auction.start {
                 let queued_bid = QueuedBid {
@@ -162,11 +159,10 @@ decl_module! {
             // Update the auction's current bid.
             auction.bid = Some((bidder.clone(), value));
             <Auctions<T>>::insert(id, auction);
-            Self::deposit_event(RawEvent::Bid(id, bidder, value));
-
-        //    for auction in <Auctions<T>>::iter() {
-        //        println!("Block : {} :: Auction :: {:?}", block_number, auction);
-        //    }
+            println!("=======");
+            println!("AFTERBID -- BlockNumber: {} // Auction {:?}", block_number, <Auctions<T>>::get(id));
+            println!("=======");
+             Self::deposit_event(RawEvent::Bid(id, bidder, value));
 
             Ok(())
         }
@@ -298,18 +294,18 @@ impl<T: Trait> Module<T> {
 
     fn _on_finalize(now: T::BlockNumber) {
         // Look and see if current BlockNumber is in AuctionEndTime
-            println!("###################################");
+        println!("###################################");
         for auction in <Auctions<T>>::iter() {
             println!("BlockNumber : {} :: Auction : {:?}", now, auction);
         }
-            println!("###################################");
+        println!("###################################");
         for (auction_id, _) in <AuctionEndTime<T>>::drain_prefix(&now) {
-           // Drain_prefix removes all keys under the specified blocknumber
+            // Drain_prefix removes all keys under the specified blocknumber
             if let Some(auction) = <Auctions<T>>::take(&auction_id) {
-        //        println!(
-        //            "Block : {}, Current auction being finalized : {:?}",
-        //            now, auction
-        //        );
+                        println!(
+                            "Block : {}, Current auction being finalized : {:?}",
+                            now, auction
+                        );
                 T::Handler::on_auction_ended(auction_id, auction.bid.clone());
             } else if let None = <Auctions<T>>::take(&auction_id) {
                 // Auction_id not found, something went wrong here.
@@ -342,7 +338,7 @@ impl<T: Trait> Auction<T::AccountId, T::BlockNumber> for Module<T> {
         if let Some(new_end) = info.end {
             <AuctionEndTime<T>>::insert(&new_end, id, true);
         }
-
+        println!("UPDATING auction");
         <Auctions<T>>::insert(id, info);
 
         Ok(())

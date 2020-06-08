@@ -90,7 +90,7 @@ impl AuctionHandler<AccountId, Balance, BlockNumber, AuctionId> for Handler {
     }
 
     fn on_auction_ended(_id: AuctionId, _winner: Option<(AccountId, Balance)>) {
-        //TODO:: Announce how the auction has ender.
+        //TODO:: Announce how the auction has ended.
         //  -- Were there any bidders
         if let Some(winner) = _winner {
             // Somebody has won, notify
@@ -319,5 +319,7 @@ fn new_test_ext_auction_bidding() {
         // All barges have 40000 currencies so bid in sequences of 5000
         // Bid on auction 0 which has a start block of 0 which should let us pass this bid.
         assert_ok!(AuctionModule::bid(Origin::signed(5), 0, 5000));
+
+        run_to_block(55);
     })
 }
