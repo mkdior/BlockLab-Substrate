@@ -5,10 +5,7 @@
 // /////////////////////////////////////////////////////////////////////////////////////////////
 #[allow(unused_imports)]
 use frame_support::{
-    decl_error,
-    decl_event,
-    decl_module,
-    decl_storage,
+    decl_error, decl_event, decl_module, decl_storage,
     dispatch::Parameter,
     ensure,
     sp_runtime::{
@@ -16,8 +13,8 @@ use frame_support::{
         DispatchError, DispatchResult,
     },
     traits::{Currency, ExistenceRequirement::AllowDeath, ReservableCurrency},
-    weights::SimpleDispatchInfo, //storage::IterableStorageDoubleMap,
-    IterableStorageDoubleMap,
+    weights::{SimpleDispatchInfo, Weight},
+    IterableStorageDoubleMap, IterableStorageMap,
 };
 
 #[allow(unused_imports)]
@@ -121,14 +118,16 @@ decl_module! {
             let bidder = ensure_signed(origin)?;
             let mut auction = <Auctions<T>>::get(id).ok_or(Error::<T>::AuctionNotExist)?;
             let block_number = <frame_system::Module<T>>::block_number();
-            println!("Current block_number : {} || Auction start block: {}", block_number, auction.start);
+            println!("###################################");
+            println!("--- BIDDING --- Current block_number : {} || Auction start block: {}", block_number, auction.start);
+            println!("###################################");
             // Queue bid if needed and exit.
-            if block_number <= auction.start {
+            if block_number < auction.start {
                 let queued_bid = QueuedBid {
                     bid: (bidder, value),
                     auction_id: id,
                 };
-                println!("We're queueing a bid {:#?}", queued_bid);
+                println!("We're queueing the bid");
                 // Check and see if proposed auction already has queued bids
                 // Check and see if current queued bid's price is higher than other queued bid
 
@@ -149,6 +148,7 @@ decl_module! {
 
             ensure!(bid_result.accept_bid, Error::<T>::BidNotAccepted);
 
+            // In case we're expecting a new end_time, replace it.
             if let Some(new_end) = bid_result.auction_end {
                 if let Some(old_end_block) = auction.end {
                     <AuctionEndTime<T>>::remove(&old_end_block, id);
@@ -159,11 +159,22 @@ decl_module! {
                 auction.end = new_end;
             }
 
+            // Update the auction's current bid.
             auction.bid = Some((bidder.clone(), value));
             <Auctions<T>>::insert(id, auction);
             Self::deposit_event(RawEvent::Bid(id, bidder, value));
 
+        //    for auction in <Auctions<T>>::iter() {
+        //        println!("Block : {} :: Auction :: {:?}", block_number, auction);
+        //    }
+
             Ok(())
+        }
+
+        fn on_initialize(now: T::BlockNumber) -> Weight {
+            Self::_on_initialize(now);
+
+            0
         }
 
         fn on_finalize(now: T::BlockNumber) {
@@ -225,7 +236,12 @@ impl<T: Trait> Module<T> {
         <Auctions<T>>::contains_key(id)
     }
 
-    fn place_queued_bid(qbid: QueuedBid<T::AccountId, BalanceOf<T>, T::AuctionId>) -> DispatchResult {
+    /// Since queued bids are technically already placed, we're not dealing with an origin. Due to
+    /// this fact we're implementing a second bidding function accepting only a bid, with an
+    /// already signed origin.
+    fn place_queued_bid(
+        qbid: QueuedBid<T::AccountId, BalanceOf<T>, T::AuctionId>,
+    ) -> DispatchResult {
         let mut auction = <Auctions<T>>::get(qbid.auction_id).ok_or(Error::<T>::AuctionNotExist)?;
         let block_number = <frame_system::Module<T>>::block_number();
 
@@ -254,7 +270,12 @@ impl<T: Trait> Module<T> {
             auction.end = new_end;
         }
 
+        // Update the auction's bid with our queued bid.
         auction.bid = Some((qbid.bid.0.clone(), qbid.bid.1));
+        println!(
+            "Queued bid placed :: Updated auction information :: {:#?}",
+            auction
+        );
         <Auctions<T>>::insert(qbid.auction_id, auction);
         Self::deposit_event(RawEvent::BidQueuedPlaced(
             qbid.auction_id,
@@ -267,18 +288,28 @@ impl<T: Trait> Module<T> {
 
     fn _on_initialize(now: T::BlockNumber) {
         // Check and see if we have any queued auctions to process.
+        //        println!("Does it contain what we're looking for? {}", <QueuedBids<T>>::contains_key(&now));
         for (qbid) in <QueuedBids<T>>::take(&now) {
             // A bid was found and is some.. process.
+            println!("We're placing a queued bid");
             Self::place_queued_bid(qbid);
         }
     }
 
     fn _on_finalize(now: T::BlockNumber) {
         // Look and see if current BlockNumber is in AuctionEndTime
+            println!("###################################");
+        for auction in <Auctions<T>>::iter() {
+            println!("BlockNumber : {} :: Auction : {:?}", now, auction);
+        }
+            println!("###################################");
         for (auction_id, _) in <AuctionEndTime<T>>::drain_prefix(&now) {
-            // Drain_prefix removes all keys under the specified blocknumber ^^
+           // Drain_prefix removes all keys under the specified blocknumber
             if let Some(auction) = <Auctions<T>>::take(&auction_id) {
-                println!("Current auction in processing : {:?}", auction);
+        //        println!(
+        //            "Block : {}, Current auction being finalized : {:?}",
+        //            now, auction
+        //        );
                 T::Handler::on_auction_ended(auction_id, auction.bid.clone());
             } else if let None = <Auctions<T>>::take(&auction_id) {
                 // Auction_id not found, something went wrong here.

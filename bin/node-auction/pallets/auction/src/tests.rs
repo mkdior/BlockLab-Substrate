@@ -138,14 +138,13 @@ impl_outer_event! {
 // Simulating block production for the general auction tests
 fn run_to_block(n: u64) {
     while System::block_number() < n {
-        println!("Block Number: {:?}", System::block_number());
         AuctionModule::on_finalize(System::block_number());
         System::on_finalize(System::block_number());
         System::set_block_number(System::block_number() + 1);
+
+        AuctionModule::on_initialize(System::block_number());
         System::on_initialize(System::block_number());
 
-        // If needed, initialize our auction
-        // AuctionModule::on_intitialize(System::block_number());
     }
 }
 
@@ -168,10 +167,14 @@ impl EnvBuilder {
                 (8, 40000), // Barge
             ],
             auctions: vec![
-                (1, 1, 49), // (Price,StartBlock,EndBlock)
-                (2, 1, 51),
-                (3, 1, 150),
-                (4, 1, 250),
+                // Start these auctions from origin
+                (200, 0, 49), // (Price,StartBlock,EndBlock)
+                (200, 0, 51),
+                (200, 0, 150),
+                (200, 0, 250),
+                // Start these auctions around block 100
+                (200, 100, 200),
+                (200, 140, 240),
             ],
         }
     }
@@ -314,6 +317,7 @@ fn new_test_ext_auction_bidding() {
         // Ensure that Auction 0 exists
         assert_eq!(AuctionModule::auction_exists(0), true);
         // All barges have 40000 currencies so bid in sequences of 5000
+        // Bid on auction 0 which has a start block of 0 which should let us pass this bid.
         assert_ok!(AuctionModule::bid(Origin::signed(5), 0, 5000));
     })
 }
