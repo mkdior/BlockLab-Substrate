@@ -144,7 +144,6 @@ fn run_to_block(n: u64) {
 
         AuctionModule::on_initialize(System::block_number());
         System::on_initialize(System::block_number());
-
     }
 }
 
@@ -314,12 +313,36 @@ fn new_test_ext_auction_expire() {
 #[test]
 fn new_test_ext_auction_bidding() {
     new_test_ext().execute_with(|| {
+        // Bid(AuctionId, AccountId, Balance)
         // Ensure that Auction 0 exists
         assert_eq!(AuctionModule::auction_exists(0), true);
         // All barges have 40000 currencies so bid in sequences of 5000
         // Bid on auction 0 which has a start block of 0 which should let us pass this bid.
         assert_ok!(AuctionModule::bid(Origin::signed(5), 0, 5000));
+        assert_ok!(AuctionModule::bid(Origin::signed(1), 0, 10000));
+        assert_ok!(AuctionModule::bid(Origin::signed(2), 0, 20000));
+        let (bid_1, bid_2, bid_3) = (
+            AuctionTestEvent::auction_events(RawEvent::Bid(0, 5, 5000)),
+            AuctionTestEvent::auction_events(RawEvent::Bid(0, 1, 10000)),
+            AuctionTestEvent::auction_events(RawEvent::Bid(0, 2, 20000)),
+        );
 
+        assert_eq!(
+                    System::events()
+                        .into_iter()
+                        .map(|r| r.event)
+                        .filter_map(|e| {
+                            if let AuctionTestEvent::auction_events(inner) = e {
+                                Some(inner)
+                            } else {
+                                None
+                            }
+                        })
+                        .last()
+                        .unwrap(),
+                    RawEvent::Bid(0, 5, 5000)
+                );
+ 
         run_to_block(55);
-    })
+   })
 }
