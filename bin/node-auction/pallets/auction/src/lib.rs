@@ -103,7 +103,7 @@ decl_event!(
         // Called when an auction ends with 0 bids.
         AuctionEndUndecided(AuctionId),
         // Other Events
-        DummyEvent(),
+        DummyEvent(u32),
     }
 );
 
@@ -119,6 +119,7 @@ decl_module! {
             let mut auction = <Auctions<T>>::get(id).ok_or(Error::<T>::AuctionNotExist)?;
             let block_number = <frame_system::Module<T>>::block_number();
             // Queue bid if needed and exit.
+            Self::deposit_event(RawEvent::DummyEvent(32));
             if block_number < auction.start {
                 // We're placing a queued bid.
                 // Check and see if current auction already has queued bids.
@@ -169,11 +170,6 @@ decl_module! {
             // Update the auction's current bid.
             auction.bid = Some((bidder.clone(), value));
             <Auctions<T>>::insert(id, auction);
-            println!("=======");
-            println!("AFTERBID -- BlockNumber: {} // Auction {:?}", block_number, <Auctions<T>>::get(id));
-            println!("=======");
-            println!("EVENT INFORMATION :: RawEvent::Bid({:?},{:?},{:?});", id, bidder, value);
-            Self::deposit_event(RawEvent::Bid(id, bidder, value));
             Ok(())
         }
 
@@ -248,8 +244,11 @@ impl<T: Trait> Module<T> {
     fn place_queued_bid(
         qbid: QueuedBid<T::AccountId, BalanceOf<T>, T::AuctionId>,
     ) -> DispatchResult {
-
-        println!("Queued bid passed to the bidder by the initialier: Block : {} :: Bid : {:?}", <frame_system::Module<T>>::block_number(), qbid);
+        println!(
+            "Queued bid passed to the bidder by the initialier: Block : {} :: Bid : {:?}",
+            <frame_system::Module<T>>::block_number(),
+            qbid
+        );
 
         let mut auction = <Auctions<T>>::get(qbid.auction_id).ok_or(Error::<T>::AuctionNotExist)?;
         let block_number = <frame_system::Module<T>>::block_number();
@@ -297,18 +296,21 @@ impl<T: Trait> Module<T> {
 
     fn _on_initialize(now: T::BlockNumber) {
         for (qbid) in <QueuedBids<T>>::take(&now) {
-            println!("Queued bid caught by the initializer : Block {} :: Bid {:?}", now, qbid);
+            println!(
+                "Queued bid caught by the initializer : Block {} :: Bid {:?}",
+                now, qbid
+            );
             Self::place_queued_bid(qbid);
         }
     }
 
     fn _on_finalize(now: T::BlockNumber) {
         // Look and see if current BlockNumber is in AuctionEndTime
-        println!("################# Block {} ##################", now);
-        for auction in <Auctions<T>>::iter() {
-            println!("Auction : {:?}", auction);
-        }
-        println!("#############################################");
+        //        println!("################# Block {} ##################", now);
+        //        for auction in <Auctions<T>>::iter() {
+        //            println!("Auction : {:?}", auction);
+        //        }
+        //        println!("#############################################");
         for (auction_id, _) in <AuctionEndTime<T>>::drain_prefix(&now) {
             // Drain_prefix removes all keys under the specified blocknumber
             if let Some(auction) = <Auctions<T>>::take(&auction_id) {
