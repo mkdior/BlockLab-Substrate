@@ -300,7 +300,7 @@ fn new_test_ext_auction_expire() {
         run_to_block(55);
         // At this point auction 0 and 1 should be dumped.
         assert_eq!(AuctionModule::auction_exists(0), false);
-        assert_eq!(AuctionModule::auction_exists(1), false); 
+        assert_eq!(AuctionModule::auction_exists(1), false);
 
         let (expiry_1, expiry_2) = (
             AuctionTestEvent::auction_events(RawEvent::AuctionEndUndecided(0)),
@@ -324,39 +324,42 @@ fn new_test_ext_auction_bidding() {
         assert_ok!(AuctionModule::bid(Origin::signed(1), 0, 10000));
         assert_ok!(AuctionModule::bid(Origin::signed(2), 0, 20000));
 
-        run_to_block(55);
-
-        AuctionModule::deposit_event(RawEvent::Bid(0, 5, 5000));
-
-        let local_events = System::events().into_iter().map(|r| r.event).filter_map(|e| {
-            Some(e)
-        });
-
-        for event in local_events {
-            println!("{:?}", event);
-        }
-
-        let (bid_1, bid_2, bid_3) = (
-            AuctionTestEvent::auction_events(RawEvent::Bid(0, 5, 5000)),
-            AuctionTestEvent::auction_events(RawEvent::Bid(0, 1, 10000)),
-            AuctionTestEvent::auction_events(RawEvent::Bid(0, 2, 20000)),
+        assert_eq!(
+            System::events()
+                .into_iter()
+                .filter_map(|e| {
+                    if let AuctionTestEvent::auction_events(inner) = e.event {
+                        Some(inner)
+                    } else {
+                        None
+                    }
+                })
+                .last()
+                .unwrap(),
+            RawEvent::Bid(0, 2, 20000)
         );
 
-//        assert_eq!(
-//                    System::events()
-//                        .into_iter()
-//                        .map(|r| r.event)
-//                        .filter_map(|e| {
-//                            if let AuctionTestEvent::auction_events(inner) = e {
-//                                Some(inner)
-//                            } else {
-//                                None
-//                            }
-//                        })
-//                        .last()
-//                        .unwrap(),
-//                    RawEvent::Bid(0, 5, 5000)
-//                );
- 
-   })
+        run_to_block(50);
+        assert_eq!(
+            System::events()
+                .into_iter()
+                .filter_map(|e| {
+                    if let AuctionTestEvent::auction_events(event) = e.event {
+                        Some(event)
+                    } else {
+                        None
+                    }
+                })
+                .last()
+                .unwrap(),
+            RawEvent::AuctionEndDecided(2, 0)
+        );
+    })
+}
+
+#[test]
+fn new_test_ext_auction_queued_bidding() {
+    new_test_ext().execute_with(|| {
+        assert_eq!(true, true);
+    });
 }

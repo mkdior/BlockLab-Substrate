@@ -103,7 +103,7 @@ decl_event!(
         // Called when an auction ends with 0 bids.
         AuctionEndUndecided(AuctionId),
         // Other Events
-        DummyEvent(u32),
+        DummyEvent(),
     }
 );
 
@@ -118,8 +118,8 @@ decl_module! {
             let bidder = ensure_signed(origin)?;
             let mut auction = <Auctions<T>>::get(id).ok_or(Error::<T>::AuctionNotExist)?;
             let block_number = <frame_system::Module<T>>::block_number();
+            
             // Queue bid if needed and exit.
-            Self::deposit_event(RawEvent::DummyEvent(32));
             if block_number < auction.start {
                 // We're placing a queued bid.
                 // Check and see if current auction already has queued bids.
@@ -167,9 +167,11 @@ decl_module! {
                 auction.end = new_end;
             }
 
-            // Update the auction's current bid.
+            // Update the auction's current bid and emit event.
             auction.bid = Some((bidder.clone(), value));
             <Auctions<T>>::insert(id, auction);
+            Self::deposit_event(RawEvent::Bid(id, bidder, value));
+
             Ok(())
         }
 
