@@ -18,10 +18,22 @@ pub struct QueuedBid<AccountId, Balance, AuctionId> {
     pub auction_id: AuctionId,
 }
 
-/// Auction info.
+/// Information being sold in the auction, in our case the actual time-slot. For now all we're
+/// storing is the timestamp and N.O_containers.
+#[cfg_attr(feature = "std", derive(PartialEq, Eq))]
+#[derive(Encode, Decode, RuntimeDebug, Clone)]
+pub struct AuctionCoreInfo;
+
+/// Auction information. The creator of the auction is always the barge. Upon creating the auction,
+/// the barge also states which terminal this auctioned off slot belongs to. This can later be
+/// expanded into verification of slot ownership etc.
 #[cfg_attr(feature = "std", derive(PartialEq, Eq))]
 #[derive(Encode, Decode, RuntimeDebug)]
 pub struct AuctionInfo<AccountId, Balance, BlockNumber> {
+    /// Creator of the auction (Barge)
+    pub creator: AccountId,
+    /// Owner of the initially issued slot (Terminal)
+    pub slot_origin: AccountId,
     /// Current bidder and bid price.
     pub bid: Option<(AccountId, Balance)>,
     /// Define which block this auction will be started.

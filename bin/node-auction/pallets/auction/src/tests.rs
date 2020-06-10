@@ -156,22 +156,23 @@ impl EnvBuilder {
     pub fn new() -> Self {
         Self {
             balances: vec![
-                (1, 20000), // Terminal
-                (2, 20000), // Terminal
-                (3, 20000), // Terminal
-                (4, 20000), // Terminal
-                (5, 40000), // Barge
-                (6, 40000), // Barge
-                (7, 40000), // Barge
-                (8, 40000), // Barge
+                (0, 5000000), // Hamza
+                (1, 20000), // Barge 
+                (2, 20000), // Barge 
+                (3, 20000), // Barge 
+                (4, 20000), // Barge 
+                (5, 40000), // Terminal 
+                (6, 40000), // Terminal
+                (7, 40000), // Terminal
+                (8, 40000), // Terminal
             ],
             auctions: vec![
                 // Start these auctions from origin
-                (200, 0, 49), // (Price,StartBlock,EndBlock)
+                (200, 0, 49),
                 (200, 0, 51),
                 (200, 0, 150),
                 (200, 0, 250),
-                // Start these auctions around block 100
+                // Start these auctions from block 100+ for the testing of the queues.
                 (200, 100, 200),
                 (200, 140, 240),
             ],
@@ -360,6 +361,9 @@ fn new_test_ext_auction_bidding() {
 #[test]
 fn new_test_ext_auction_queued_bidding() {
     new_test_ext().execute_with(|| {
-        assert_eq!(true, true);
+        // Create new auction set for block 100+
+
+        // Bid on the auction while it hasn't begun
+        // Test queue
     });
 }
