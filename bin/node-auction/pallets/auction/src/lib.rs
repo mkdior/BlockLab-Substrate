@@ -72,8 +72,7 @@ decl_storage! {
                     );
                 }
                 for &(ref barge, ref terminal, ref core_info, ref start, ref end) in config._auctions.iter() {
-                    
-                    <Module<T>>::new_auction(barge, terminal, *core_info, *start, Some(*end));
+                    <Module<T>>::new_auction(*barge, *terminal, *core_info, *start, Some(*end));
                     }
             });
     }

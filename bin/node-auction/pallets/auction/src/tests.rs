@@ -169,13 +169,13 @@ impl EnvBuilder {
             ],
             auctions: vec![
                 // Start these auctions from origin
-                (1, 5, AuctionCoreInfo {timestamp: 1594471764, cargo: (22, 22),}, 0, 49),
-                (2, 6, AuctionCoreInfo {timestamp: 1594471764, cargo: (22, 22),}, 0, 51),
-                (3, 7, AuctionCoreInfo {timestamp: 1594471764, cargo: (22, 22),}, 0, 150),
-                (4, 8, AuctionCoreInfo {timestamp: 1594471764, cargo: (22, 22),}, 0, 250),
+                (&1, &5, AuctionCoreInfo {timestamp: 1594471764, cargo: (22, 22),}, 0, 49),
+                (&2, &6, AuctionCoreInfo {timestamp: 1594471764, cargo: (22, 22),}, 0, 51),
+                (&3, &7, AuctionCoreInfo {timestamp: 1594471764, cargo: (22, 22),}, 0, 150),
+                (&4, &8, AuctionCoreInfo {timestamp: 1594471764, cargo: (22, 22),}, 0, 250),
                 // Start these auctions from block 100+ for the testing of the queues.
-                (1, 5, AuctionCoreInfo {timestamp: 1594471764, cargo: (22, 22),}, 100, 500),
-                (2, 6, AuctionCoreInfo {timestamp: 1594471764, cargo: (22, 22),}, 140, 600),
+                (&1, &5, AuctionCoreInfo {timestamp: 1594471764, cargo: (22, 22),}, 100, 500),
+                (&2, &6, AuctionCoreInfo {timestamp: 1594471764, cargo: (22, 22),}, 140, 600),
             ],
         }
     }

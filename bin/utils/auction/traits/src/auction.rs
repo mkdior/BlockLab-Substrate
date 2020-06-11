@@ -32,7 +32,7 @@ pub struct AuctionCoreInfo {
 /// the barge also states which terminal this auctioned off slot belongs to. This can later be
 /// expanded into verification of slot ownership etc.
 #[cfg_attr(feature = "std", derive(PartialEq, Eq))]
-#[derive(Encode, Decode, RuntimeDebug)]
+#[derive(Encode, Decode, RuntimeDebug, Clone, Copy)]
 pub struct AuctionInfo<AccountId, Balance, BlockNumber> {
     /// Creator of the auction (Barge)
     pub creator: AccountId,
