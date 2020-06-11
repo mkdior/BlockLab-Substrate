@@ -10,7 +10,7 @@ use sp_std::{
 };
 /// Queued bid information.
 #[cfg_attr(feature = "std", derive(PartialEq, Eq))]
-#[derive(Encode, Decode, RuntimeDebug, Clone)]
+#[derive(Encode, Decode, RuntimeDebug, Clone, Copy)]
 pub struct QueuedBid<AccountId, Balance, AuctionId> {
     /// The bid to be queued.
     pub bid: (AccountId, Balance),
@@ -19,10 +19,14 @@ pub struct QueuedBid<AccountId, Balance, AuctionId> {
 }
 
 /// Information being sold in the auction, in our case the actual time-slot. For now all we're
-/// storing is the timestamp and N.O_containers.
+/// storing is the timestamp and the cargo information in a tuple of (number of containers, TEUs). For TEUs we're assuming (1TEU==1Container). 
+/// The timestamp is stored in UNIX format :: https://en.wikipedia.org/wiki/Unix_time
 #[cfg_attr(feature = "std", derive(PartialEq, Eq))]
-#[derive(Encode, Decode, RuntimeDebug, Clone)]
-pub struct AuctionCoreInfo;
+#[derive(Encode, Decode, RuntimeDebug, Clone, Copy)]
+pub struct AuctionCoreInfo {
+    timestamp: u64,
+    cargo: (i32, i32),
+}
 
 /// Auction information. The creator of the auction is always the barge. Upon creating the auction,
 /// the barge also states which terminal this auctioned off slot belongs to. This can later be
@@ -36,6 +40,8 @@ pub struct AuctionInfo<AccountId, Balance, BlockNumber> {
     pub slot_origin: AccountId,
     /// Current bidder and bid price.
     pub bid: Option<(AccountId, Balance)>,
+    /// Core auction information
+    pub core: AuctionCoreInfo,
     /// Define which block this auction will be started.
     pub start: BlockNumber,
     /// Define which block this auction will be ended.
@@ -59,7 +65,13 @@ pub trait Auction<AccountId, BlockNumber> {
         info: AuctionInfo<AccountId, Self::Balance, BlockNumber>,
     ) -> DispatchResult;
     /// Create new auction with specific startblock and endblock, return the id of the auction
-    fn new_auction(start: BlockNumber, end: Option<BlockNumber>) -> Self::AuctionId;
+    fn new_auction(
+        barge: AccountId,
+        terminal: AccountId,
+        core_info: AuctionCoreInfo,
+        start: BlockNumber,
+        end: Option<BlockNumber>,
+    ) -> Self::AuctionId;
     /// Remove auction by `id`
     fn remove_auction(id: Self::AuctionId);
 }

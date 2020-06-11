@@ -149,11 +149,12 @@ fn run_to_block(n: u64) {
 
 pub struct EnvBuilder {
     balances: Vec<(u64, u64)>,
-    auctions: Vec<(AccountId, BlockNumber, BlockNumber)>,
+    auctions: Vec<(AccountId, AccountId, AuctionCoreInfo, BlockNumber, BlockNumber)>,
 }
 
 impl EnvBuilder {
-    pub fn new() -> Self {
+    pub fn new() -> Self { 
+        // Config :: Vec<(T::AccountId | Barge, T::AccountId | Terminal, AuctionCoreInfo, T::BlockNumber | Start, T::BlockNumber | End)>;
         Self {
             balances: vec![
                 (0, 5000000), // Hamza
@@ -168,13 +169,13 @@ impl EnvBuilder {
             ],
             auctions: vec![
                 // Start these auctions from origin
-                (200, 0, 49),
-                (200, 0, 51),
-                (200, 0, 150),
-                (200, 0, 250),
+                (1, 5, AuctionCoreInfo {timestamp: 1594471764, cargo: (22, 22),}, 0, 49),
+                (2, 6, AuctionCoreInfo {timestamp: 1594471764, cargo: (22, 22),}, 0, 51),
+                (3, 7, AuctionCoreInfo {timestamp: 1594471764, cargo: (22, 22),}, 0, 150),
+                (4, 8, AuctionCoreInfo {timestamp: 1594471764, cargo: (22, 22),}, 0, 250),
                 // Start these auctions from block 100+ for the testing of the queues.
-                (200, 100, 200),
-                (200, 140, 240),
+                (1, 5, AuctionCoreInfo {timestamp: 1594471764, cargo: (22, 22),}, 100, 500),
+                (2, 6, AuctionCoreInfo {timestamp: 1594471764, cargo: (22, 22),}, 140, 600),
             ],
         }
     }

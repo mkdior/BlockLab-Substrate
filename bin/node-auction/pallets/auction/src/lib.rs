@@ -21,7 +21,7 @@ use frame_support::{
 use frame_system::{self as system, ensure_signed};
 
 #[allow(unused_imports)]
-use orml_traits::auction::{Auction, AuctionHandler, AuctionInfo, QueuedBid};
+use orml_traits::auction::{Auction, AuctionCoreInfo, AuctionHandler, AuctionInfo, QueuedBid};
 
 use serde;
 
@@ -33,7 +33,7 @@ mod tests;
 type BalanceOf<T> = <<T as Trait>::Currency as Currency<<T as system::Trait>::AccountId>>::Balance;
 
 /// The pallet's configuration trait.
-pub trait Trait: system::Trait + Sized {
+pub trait Trait: system::Trait + Sized + Copy {
     /// The overarching event type.
     type Event: From<Event<Self>> + Into<<Self as system::Trait>::Event>;
     type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
@@ -46,8 +46,6 @@ pub trait Trait: system::Trait + Sized {
     >;
 }
 
-/// Extra structs
-
 decl_storage! {
     trait Store for Module<T: Trait> as AuctionModule {
         // pub Auction get(fn auctions) config() <-- requires you to set the initial values in
@@ -59,18 +57,23 @@ decl_storage! {
         pub QueuedBids get(fn queued_bids): map hasher(twox_64_concat) T::BlockNumber => Option<QueuedBid<T::AccountId, BalanceOf<T>, T::AuctionId>>;
     }
         add_extra_genesis {
-                               //        Barge       Terminal        Start            End
-            config(_auctions): Vec<(T::AuctionId, T::AccountId, T::BlockNumber, T::BlockNumber)>;
+                               //        Barge       Terminal                          Start            End
+            config(_auctions): Vec<(T::AccountId, T::AccountId, AuctionCoreInfo, T::BlockNumber, T::BlockNumber)>;
 
             build(|config: &GenesisConfig<T>| {
-                for (_, start, end) in &config._auctions {
+                for (barge, terminal, core_info, start, end) in &config._auctions {
                     assert!(
                         *end > *start,
                         "Ending block has to be greater than the starting block",
                     );
+                    assert!(
+                        *barge != *terminal,
+                        "Barge operator cannot be the terminal",
+                    );
                 }
-                for &(ref id, ref start, ref end) in config._auctions.iter() {
-                    <Module<T>>::new_auction(*start, Some(*end));
+                for &(ref barge, ref terminal, ref core_info, ref start, ref end) in config._auctions.iter() {
+                    
+                    <Module<T>>::new_auction(barge, terminal, *core_info, *start, Some(*end));
                     }
             });
     }
@@ -118,7 +121,7 @@ decl_module! {
             let bidder = ensure_signed(origin)?;
             let mut auction = <Auctions<T>>::get(id).ok_or(Error::<T>::AuctionNotExist)?;
             let block_number = <frame_system::Module<T>>::block_number();
-            
+
             // Queue bid if needed and exit.
             if block_number < auction.start {
                 // We're placing a queued bid.
@@ -355,9 +358,18 @@ impl<T: Trait> Auction<T::AccountId, T::BlockNumber> for Module<T> {
         Ok(())
     }
 
-    fn new_auction(start: T::BlockNumber, end: Option<T::BlockNumber>) -> Self::AuctionId {
+    fn new_auction(
+        barge: T::AccountId,
+        terminal: T::AccountId,
+        core_info: AuctionCoreInfo,
+        start: T::BlockNumber,
+        end: Option<T::BlockNumber>,
+    ) -> Self::AuctionId {
         let auction = AuctionInfo {
+            creator: barge,
+            slot_origin: terminal,
             bid: None,
+            core: core_info,
             start,
             end,
         };
