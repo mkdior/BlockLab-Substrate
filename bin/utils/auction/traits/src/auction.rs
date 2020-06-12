@@ -24,8 +24,8 @@ pub struct QueuedBid<AccountId, Balance, AuctionId> {
 #[cfg_attr(feature = "std", derive(PartialEq, Eq))]
 #[derive(Encode, Decode, RuntimeDebug, Clone, Copy)]
 pub struct AuctionCoreInfo {
-    timestamp: u64,
-    cargo: (i32, i32),
+    pub timestamp: u64,
+    pub cargo: (i32, i32),
 }
 
 /// Auction information. The creator of the auction is always the barge. Upon creating the auction,
