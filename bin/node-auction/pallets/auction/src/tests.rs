@@ -369,6 +369,10 @@ fn new_test_ext_auction_queued_bidding() {
         // Queue should be emptied on block 140 so let's jump ten ahead. At this point the queued
         // bid should be placed on the auction in question and the auction will be updated.
         run_to_block(150);
+        // Queue another bid for the same acution. The lower of the two bids should be dropped.
+        AuctionModule::bid(Origin::signed(2), 5, 11000);
+        run_to_block(160);
+        AuctionModule::bid(Origin::signed(2), 5, 10000);
         // Run to the end block, which for this auction is block 600, jump 10 ahead and everything
         // should be finalized with an AuctionEndDecided().
         run_to_block(610);

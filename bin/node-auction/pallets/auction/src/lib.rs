@@ -304,8 +304,6 @@ impl<T: Trait> Module<T> {
                 now, qbid
             );
 
-            ensure!(Self::auction_exists(qbid.auction_id), "The auction this queued bid is trying to parse into doesn't exist.");
-
             Self::place_queued_bid(qbid);
         }
     }
