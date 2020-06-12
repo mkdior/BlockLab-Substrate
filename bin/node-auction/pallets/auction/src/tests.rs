@@ -2,7 +2,7 @@
 
 use crate::*;
 use frame_support::{
-    assert_err, assert_ok, impl_outer_event, impl_outer_origin, parameter_types,
+    assert_err, assert_noop, assert_ok, impl_outer_event, impl_outer_origin, parameter_types,
     traits::{BalanceStatus, OnFinalize, OnInitialize},
 };
 use frame_system::{self as system};
@@ -148,33 +148,93 @@ fn run_to_block(n: u64) {
 
 pub struct EnvBuilder {
     balances: Vec<(u64, u64)>,
-    auctions: Vec<(AccountId, AccountId, AuctionCoreInfo, BlockNumber, BlockNumber)>,
+    auctions: Vec<(
+        AccountId,
+        AccountId,
+        AuctionCoreInfo,
+        BlockNumber,
+        BlockNumber,
+    )>,
 }
 
 impl EnvBuilder {
-    pub fn new() -> Self { 
+    pub fn new() -> Self {
         // Config :: Vec<(T::AccountId | Barge, T::AccountId | Terminal, AuctionCoreInfo, T::BlockNumber | Start, T::BlockNumber | End)>;
         Self {
             balances: vec![
                 (0, 5000000), // Hamza
-                (1, 20000), // Barge 
-                (2, 20000), // Barge 
-                (3, 20000), // Barge 
-                (4, 20000), // Barge 
-                (5, 40000), // Terminal 
-                (6, 40000), // Terminal
-                (7, 40000), // Terminal
-                (8, 40000), // Terminal
+                (1, 20000),   // Barge
+                (2, 20000),   // Barge
+                (3, 20000),   // Barge
+                (4, 20000),   // Barge
+                (5, 40000),   // Terminal
+                (6, 40000),   // Terminal
+                (7, 40000),   // Terminal
+                (8, 40000),   // Terminal
             ],
             auctions: vec![
                 // Start these auctions from origin
-                (1, 5, AuctionCoreInfo {timestamp: 1594471764, cargo: (22, 22),}, 0, 49),
-                (2, 6, AuctionCoreInfo {timestamp: 1594471764, cargo: (22, 22),}, 0, 51),
-                (3, 7, AuctionCoreInfo {timestamp: 1594471764, cargo: (22, 22),}, 0, 150),
-                (4, 8, AuctionCoreInfo {timestamp: 1594471764, cargo: (22, 22),}, 0, 250),
+                (
+                    1,
+                    5,
+                    AuctionCoreInfo {
+                        timestamp: 1594471764,
+                        cargo: (22, 22),
+                    },
+                    0,
+                    49,
+                ),
+                (
+                    2,
+                    6,
+                    AuctionCoreInfo {
+                        timestamp: 1594471764,
+                        cargo: (22, 22),
+                    },
+                    0,
+                    51,
+                ),
+                (
+                    3,
+                    7,
+                    AuctionCoreInfo {
+                        timestamp: 1594471764,
+                        cargo: (22, 22),
+                    },
+                    0,
+                    150,
+                ),
+                (
+                    4,
+                    8,
+                    AuctionCoreInfo {
+                        timestamp: 1594471764,
+                        cargo: (22, 22),
+                    },
+                    0,
+                    250,
+                ),
                 // Start these auctions from block 100+ for the testing of the queues.
-                (1, 5, AuctionCoreInfo {timestamp: 1594471764, cargo: (22, 22),}, 100, 500),
-                (2, 6, AuctionCoreInfo {timestamp: 1594471764, cargo: (22, 22),}, 140, 600),
+                (
+                    1,
+                    5,
+                    AuctionCoreInfo {
+                        timestamp: 1594471764,
+                        cargo: (22, 22),
+                    },
+                    100,
+                    500,
+                ),
+                (
+                    2,
+                    6,
+                    AuctionCoreInfo {
+                        timestamp: 1594471764,
+                        cargo: (22, 22),
+                    },
+                    140,
+                    600,
+                ),
             ],
         }
     }
@@ -365,18 +425,31 @@ fn new_test_ext_auction_queued_bidding() {
         // Block 0
         run_to_block(1);
         // Block 1 :: Bid should be put up for queue
-        AuctionModule::bid(Origin::signed(1), 5, 10000); 
+        assert_ok!(AuctionModule::bid(Origin::signed(1), 5, 10000));
         // Queue should be emptied on block 140 so let's jump ten ahead. At this point the queued
         // bid should be placed on the auction in question and the auction will be updated.
         run_to_block(150);
         // Queue another bid for the same acution. The lower of the two bids should be dropped.
-        AuctionModule::bid(Origin::signed(2), 5, 11000);
+        assert_ok!(AuctionModule::bid(Origin::signed(2), 5, 11000));
         run_to_block(160);
-        AuctionModule::bid(Origin::signed(2), 5, 10000);
+        // When trying to bid lower we should be served a InvalidBidPrice error.
+        assert_noop!(AuctionModule::bid(Origin::signed(3), 5, 10000), Error::<AuctionTestRuntime>::InvalidBidPrice);
         // Run to the end block, which for this auction is block 600, jump 10 ahead and everything
         // should be finalized with an AuctionEndDecided().
         run_to_block(610);
-        // Bid on the auction while it hasn't begun
-        // Test queue
+        assert_eq!(
+            System::events()
+                .into_iter()
+                .filter_map(|e| {
+                    if let AuctionTestEvent::auction_events(event) = e.event {
+                        Some(event)
+                    } else {
+                        None
+                    }
+                })
+                .last()
+                .unwrap(),
+            RawEvent::AuctionEndDecided(2, 5)
+        );
     });
 }
