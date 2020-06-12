@@ -33,7 +33,7 @@ mod tests;
 type BalanceOf<T> = <<T as Trait>::Currency as Currency<<T as system::Trait>::AccountId>>::Balance;
 
 /// The pallet's configuration trait.
-pub trait Trait: system::Trait + Sized + Copy {
+pub trait Trait: system::Trait + Sized {
     /// The overarching event type.
     type Event: From<Event<Self>> + Into<<Self as system::Trait>::Event>;
     type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
@@ -72,7 +72,7 @@ decl_storage! {
                     );
                 }
                 for &(ref barge, ref terminal, ref core_info, ref start, ref end) in config._auctions.iter() {
-                    <Module<T>>::new_auction(*barge, *terminal, *core_info, *start, Some(*end));
+                    <Module<T>>::new_auction(barge.clone(), terminal.clone(), *core_info, *start, Some(*end));
                     }
             });
     }
