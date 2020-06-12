@@ -5,11 +5,10 @@ use frame_support::{
     assert_err, assert_ok, impl_outer_event, impl_outer_origin, parameter_types,
     traits::{BalanceStatus, OnFinalize, OnInitialize},
 };
-use frame_system::{self as system, RawOrigin};
+use frame_system::{self as system};
 use orml_traits::auction::*;
 use pallet_balances::{self as balances};
-use sp_core::{LogLevel, H256};
-use sp_io::{self as io, logging::log};
+use sp_core::H256;
 use sp_runtime::{
     testing::Header,
     traits::{BlakeTwo256, IdentityLookup},
@@ -363,7 +362,16 @@ fn new_test_ext_auction_bidding() {
 fn new_test_ext_auction_queued_bidding() {
     new_test_ext().execute_with(|| {
         // Create new auction set for block 100+
-
+        // Block 0
+        run_to_block(1);
+        // Block 1 :: Bid should be put up for queue
+        AuctionModule::bid(Origin::signed(1), 5, 10000); 
+        // Queue should be emptied on block 140 so let's jump ten ahead. At this point the queued
+        // bid should be placed on the auction in question and the auction will be updated.
+        run_to_block(150);
+        // Run to the end block, which for this auction is block 600, jump 10 ahead and everything
+        // should be finalized with an AuctionEndDecided().
+        run_to_block(610);
         // Bid on the auction while it hasn't begun
         // Test queue
     });

@@ -1,7 +1,7 @@
 use codec::FullCodec;
-use codec::{Decode, Encode, EncodeLike};
+use codec::{Decode, Encode};
 use sp_runtime::{
-    traits::{AtLeast32Bit, MaybeSerializeDeserialize},
+    traits::{MaybeSerializeDeserialize},
     DispatchResult, RuntimeDebug,
 };
 use sp_std::{

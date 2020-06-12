@@ -23,8 +23,6 @@ use frame_system::{self as system, ensure_signed};
 #[allow(unused_imports)]
 use orml_traits::auction::{Auction, AuctionCoreInfo, AuctionHandler, AuctionInfo, QueuedBid};
 
-use serde;
-
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 #[cfg(test)]
@@ -141,6 +139,7 @@ decl_module! {
                     bid: (bidder, value),
                     auction_id: id,
                 };
+
                 println!("We're queueing the bid");
 
                 <QueuedBids<T>>::insert(auction.start, queued_bid.clone());
@@ -299,11 +298,14 @@ impl<T: Trait> Module<T> {
     }
 
     fn _on_initialize(now: T::BlockNumber) {
-        for (qbid) in <QueuedBids<T>>::take(&now) {
+        for qbid in <QueuedBids<T>>::take(&now) {
             println!(
                 "Queued bid caught by the initializer : Block {} :: Bid {:?}",
                 now, qbid
             );
+
+            ensure!(Self::auction_exists(qbid.auction_id), "The auction this queued bid is trying to parse into doesn't exist.");
+
             Self::place_queued_bid(qbid);
         }
     }
