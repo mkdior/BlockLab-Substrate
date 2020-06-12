@@ -6,7 +6,7 @@ use frame_support::{
     traits::{BalanceStatus, OnFinalize, OnInitialize},
 };
 use frame_system::{self as system};
-use orml_traits::auction::*;
+use auction_traits::auction::*;
 use pallet_balances::{self as balances};
 use sp_core::H256;
 use sp_runtime::{
@@ -452,4 +452,14 @@ fn new_test_ext_auction_queued_bidding() {
             RawEvent::AuctionEndDecided(2, 5)
         );
     });
+}
+
+#[test]
+fn new_test_ext_bidding_currency() {
+    new_test_ext().execute_with(|| {
+        // Bid and test the reservation capabilities
+        // Overbid and test the slashing capabilities
+        // Complete an auction and test the sending capabilities
+        assert_eq!(true, true);
+    })
 }

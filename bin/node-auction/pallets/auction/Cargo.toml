@@ -23,7 +23,7 @@ default-features = false
 version = '2.0.0-alpha.6'
 path = '../../../../frame/balances'
 
-[dependencies.orml-traits]
+[dependencies.auction-traits]
 default-features = false
 path = "../../../utils/auction/traits"
 
@@ -69,7 +69,7 @@ std = [
 	'frame-system/std',
   'pallet-balances/std',
   'sp-runtime/std',
-	'orml-traits/std'
+	'auction-traits/std'
 ]
 
 [package.metadata.docs.rs]

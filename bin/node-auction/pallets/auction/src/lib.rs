@@ -21,7 +21,7 @@ use frame_support::{
 use frame_system::{self as system, ensure_signed};
 
 #[allow(unused_imports)]
-use orml_traits::auction::{Auction, AuctionCoreInfo, AuctionHandler, AuctionInfo, QueuedBid};
+use auction_traits::auction::{Auction, AuctionCoreInfo, AuctionHandler, AuctionInfo, QueuedBid};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 

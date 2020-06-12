@@ -255,6 +255,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "auction-traits"
+version = "0.0.1"
+dependencies = [
+ "clear_on_drop",
+ "frame-support",
+ "impl-trait-for-tuples",
+ "num-traits 0.2.11",
+ "parity-scale-codec",
+ "serde",
+ "sp-io",
+ "sp-runtime",
+ "sp-std 2.0.0-alpha.6",
+]
+
+[[package]]
 name = "autocfg"
 version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3903,21 +3918,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77af24da69f9d9341038eba93a073b1fdaaa1b788221b00a69bce9e762cb32de"
 
 [[package]]
-name = "orml-traits"
-version = "0.0.1"
-dependencies = [
- "clear_on_drop",
- "frame-support",
- "impl-trait-for-tuples",
- "num-traits 0.2.11",
- "parity-scale-codec",
- "serde",
- "sp-io",
- "sp-runtime",
- "sp-std 2.0.0-alpha.6",
-]
-
-[[package]]
 name = "output_vt100"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3953,10 +3953,10 @@ dependencies = [
 name = "pallet-auction"
 version = "1.0.0"
 dependencies = [
+ "auction-traits",
  "frame-support",
  "frame-system",
  "num-traits 0.2.11",
- "orml-traits",
  "pallet-balances",
  "parity-scale-codec",
  "serde",
