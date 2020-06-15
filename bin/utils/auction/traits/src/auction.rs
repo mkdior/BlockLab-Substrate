@@ -1,9 +1,6 @@
 use codec::FullCodec;
 use codec::{Decode, Encode};
-use sp_runtime::{
-    traits::{MaybeSerializeDeserialize},
-    DispatchResult, RuntimeDebug,
-};
+use sp_runtime::{traits::MaybeSerializeDeserialize, DispatchResult, RuntimeDebug};
 use sp_std::{
     cmp::{Eq, PartialEq},
     fmt::Debug,
@@ -19,7 +16,7 @@ pub struct QueuedBid<AccountId, Balance, AuctionId> {
 }
 
 /// Information being sold in the auction, in our case the actual time-slot. For now all we're
-/// storing is the timestamp and the cargo information in a tuple of (number of containers, TEUs). For TEUs we're assuming (1TEU==1Container). 
+/// storing is the timestamp and the cargo information in a tuple of (number of containers, TEUs). For TEUs we're assuming (1TEU==1Container).
 /// The timestamp is stored in UNIX format :: https://en.wikipedia.org/wiki/Unix_time
 #[cfg_attr(feature = "std", derive(PartialEq, Eq))]
 #[derive(Encode, Decode, RuntimeDebug, Clone, Copy)]
@@ -96,5 +93,9 @@ pub trait AuctionHandler<AccountId, Balance, BlockNumber, AuctionId> {
         last_bid: Option<(AccountId, Balance)>,
     ) -> OnNewBidResult<BlockNumber>;
     /// End an auction with `winner`
-    fn on_auction_ended(id: AuctionId, winner: Option<(AccountId, Balance)>);
+    fn on_auction_ended(
+        id: AuctionId,
+        recipients: (AccountId, AccountId),
+        winner: Option<(AccountId, Balance)>,
+    );
 }

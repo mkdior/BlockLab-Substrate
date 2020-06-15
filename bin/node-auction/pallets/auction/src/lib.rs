@@ -12,7 +12,10 @@ use frame_support::{
         traits::{AtLeast32Bit, MaybeSerializeDeserialize, Member, One, Zero},
         DispatchError, DispatchResult,
     },
-    traits::{Currency, ExistenceRequirement::AllowDeath, ReservableCurrency},
+    traits::{
+        Currency, ExistenceRequirement::AllowDeath, ReservableCurrency, WithdrawReason,
+        WithdrawReasons,
+    },
     weights::{SimpleDispatchInfo, Weight},
     IterableStorageDoubleMap, IterableStorageMap,
 };
@@ -107,6 +110,19 @@ decl_event!(
     }
 );
 
+decl_error! {
+    pub enum Error for Module<T: Trait> {
+        AuctionNotExist,
+        AuctionNotStarted,
+        BidNotAccepted,
+        InvalidBidPrice,
+
+        AmbitiousReserve,
+        AmbitiousTransfer,
+        Unexplained,
+    }
+}
+
 decl_module! {
    pub struct Module<T: Trait> for enum Call where origin: T::Origin {
         type Error = Error<T>;
@@ -128,11 +144,8 @@ decl_module! {
                 // have the auction ID's exposed through a double map, this way we can search
                 // focusing just on the auction ID, which saves us a loop.
                 for (bnum, qbid) in <QueuedBids<T>>::iter() {
-                    println!("Queued bid under block number: {} :: {:?}", bnum, qbid);
+                    println!("Queued bid under block number: {} :: {:#?}", bnum, qbid);
                 }
-
-                // Check and see if current queued bid's price is higher than other queued bids.
-
 
                 // Assemble our queued bid.
                 let queued_bid = QueuedBid {
@@ -140,8 +153,15 @@ decl_module! {
                     auction_id: id,
                 };
 
-                println!("We're queueing the bid");
+                println!("{:#?} being inserted -- queued bid.", queued_bid);
 
+                // Currently bids are queued regardless of the iniatiator's balance. This enables
+                // bidders to cancel each-other's bids out by bidding something higher than the
+                // other. To stop this from happening, we reserve some of the balance now.
+                Self::reserve_funds(&queued_bid.bid.0, queued_bid.bid.1);
+                // Note that the reserved balance isn't an exlusive pool of funds, other methods in
+                // this runtime can pull from it. Perhaps something else is needed to make sure
+                // that the unreserving funds are always successful.
                 <QueuedBids<T>>::insert(auction.start, queued_bid.clone());
                 Self::deposit_event(RawEvent::BidQueued(queued_bid));
                 return Ok(());
@@ -157,7 +177,17 @@ decl_module! {
 
             ensure!(bid_result.accept_bid, Error::<T>::BidNotAccepted);
 
-            // In case we're expecting a new end_time, replace it.
+            // Bid was accepted, time to refund the previous bidder.
+            if let Some((a,b)) = &auction.bid {
+                let (previous_bidder,previous_bid) = &auction.bid.unwrap();
+                Self::unreserve_funds(previous_bidder, *previous_bid);
+            } else {
+                // If needed, add additional handling here for when there's no previous bid.
+                println!("No previous bid, let's not unreserve the unreservable.");
+            }
+
+            // In case we're expecting a new end_time, replace it. This in essence extends the
+            // auction.
             if let Some(new_end) = bid_result.auction_end {
                 if let Some(old_end_block) = auction.end {
                     <AuctionEndTime<T>>::remove(&old_end_block, id);
@@ -168,9 +198,12 @@ decl_module! {
                 auction.end = new_end;
             }
 
-            // Update the auction's current bid and emit event.
+            // Reserve auction funds
+            Self::reserve_funds(&bidder, value);
+            // Update auction bid
             auction.bid = Some((bidder.clone(), value));
             <Auctions<T>>::insert(id, auction);
+            // Emit bidding event
             Self::deposit_event(RawEvent::Bid(id, bidder, value));
 
             Ok(())
@@ -188,52 +221,51 @@ decl_module! {
     }
 }
 
-decl_error! {
-    pub enum Error for Module<T: Trait> {
-        AuctionNotExist,
-        AuctionNotStarted,
-        BidNotAccepted,
-        InvalidBidPrice,
-
-        AmbitiousReserve,
-        AmbitiousTransfer,
-        Unexplained,
-    }
-}
-
 impl<T: Trait> Module<T> {
     // TODO(Hamza):
     // https://github.com/substrate-developer-hub/recipes/blob/master/pallets/weights/src/lib.rs
-    pub fn reserve_funds(target: T::AccountId, amount: BalanceOf<T>) -> DispatchResult {
+    pub fn reserve_funds(target: &T::AccountId, amount: BalanceOf<T>) -> DispatchResult {
         //TODO(Hamza): Serve proper errors. Also perhaps implement Currency for our local trait
         // to avoid the use of Currency::X
-        T::Currency::reserve(&target, amount).map_err(|_| "Not able to reserve");
-
         let now = <system::Module<T>>::block_number();
+        // TODO TODO TODO TODO TODO Add wrapping for these values!
+        println!("{}", amount.wrapping_sub(20));
+        println!("PREPREPREPREPRE");
+        if ((T::Currency::free_balance(target) - amount) < 0.into()) {
+            panic!("Good :D ");
+        }
+        T::Currency::ensure_can_withdraw(
+            target,
+            amount,
+            WithdrawReason::Reserve.into(),
+            T::Currency::free_balance(target) - amount,
+        )
+        .map_err(|_e| <Error<T>>::AmbitiousReserve)?;
 
-        Self::deposit_event(RawEvent::LockFunds(target, amount, now));
+        T::Currency::reserve(&target, amount);
+
         Ok(())
     }
 
-    pub fn unreserve_funds(target: T::AccountId, amount: BalanceOf<T>) -> DispatchResult {
+    pub fn unreserve_funds(target: &T::AccountId, amount: BalanceOf<T>) -> DispatchResult {
+        let now = <system::Module<T>>::block_number();
         T::Currency::unreserve(&target, amount);
 
-        let now = <system::Module<T>>::block_number();
-
-        Self::deposit_event(RawEvent::UnlockFunds(target, amount, now));
         Ok(())
     }
 
     pub fn transfer_funds(
-        from: T::AccountId,
-        to: T::AccountId,
+        from: &T::AccountId,
+        to: &T::AccountId,
         amount: BalanceOf<T>,
     ) -> DispatchResult {
-        T::Currency::transfer(&from, &to, amount, AllowDeath)?;
-
+        // We're trying to make sure that the amount pulled from reserved is equal to the original
+        // agreed upon reservation. If reserved is less than that, the amount due is stored in
+        // overdraft.
+        let overdraft = T::Currency::unreserve(from, amount);
+        T::Currency::transfer(from, to, amount - overdraft, AllowDeath)?;
         let now = <system::Module<T>>::block_number();
 
-        Self::deposit_event(RawEvent::TransferFunds(from, to, amount, now));
         Ok(())
     }
 
@@ -319,7 +351,11 @@ impl<T: Trait> Module<T> {
             // Drain_prefix removes all keys under the specified blocknumber
             if let Some(auction) = <Auctions<T>>::take(&auction_id) {
                 println!("Current auction being finalized : {:?}", auction);
-                T::Handler::on_auction_ended(auction_id, auction.bid.clone());
+                T::Handler::on_auction_ended(
+                    auction_id,
+                    (auction.creator, auction.slot_origin),
+                    auction.bid.clone(),
+                );
             } else if let None = <Auctions<T>>::take(&auction_id) {
                 // Auction_id not found, something went wrong here.
                 println!("Something went wrong");

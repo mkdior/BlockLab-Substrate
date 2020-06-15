@@ -1,12 +1,12 @@
 // Creating mock runtime here
 
 use crate::*;
+use auction_traits::auction::*;
 use frame_support::{
     assert_err, assert_noop, assert_ok, impl_outer_event, impl_outer_origin, parameter_types,
     traits::{BalanceStatus, OnFinalize, OnInitialize},
 };
 use frame_system::{self as system};
-use auction_traits::auction::*;
 use pallet_balances::{self as balances};
 use sp_core::H256;
 use sp_runtime::{
@@ -87,12 +87,15 @@ impl AuctionHandler<AccountId, Balance, BlockNumber, AuctionId> for Handler {
             auction_end: None,
         }
     }
-
-    fn on_auction_ended(_id: AuctionId, _winner: Option<(AccountId, Balance)>) {
-        //TODO:: Announce how the auction has ended.
-        //  -- Were there any bidders
+    //                                               (creator, slot_origin)
+    fn on_auction_ended(
+        _id: AuctionId,
+        _recipients: (AccountId, AccountId),
+        _winner: Option<(AccountId, Balance)>,
+    ) {
         if let Some(winner) = _winner {
             // Somebody has won, notify
+            AuctionModule::transfer_funds(&winner.0, &_recipients.0, winner.1);
             AuctionModule::deposit_event(RawEvent::AuctionEndDecided(winner.0, _id));
             println!("The winner: {:?}", winner);
         } else if let None = _winner {
@@ -433,7 +436,10 @@ fn new_test_ext_auction_queued_bidding() {
         assert_ok!(AuctionModule::bid(Origin::signed(2), 5, 11000));
         run_to_block(160);
         // When trying to bid lower we should be served a InvalidBidPrice error.
-        assert_noop!(AuctionModule::bid(Origin::signed(3), 5, 10000), Error::<AuctionTestRuntime>::InvalidBidPrice);
+        assert_noop!(
+            AuctionModule::bid(Origin::signed(3), 5, 10000),
+            Error::<AuctionTestRuntime>::InvalidBidPrice
+        );
         // Run to the end block, which for this auction is block 600, jump 10 ahead and everything
         // should be finalized with an AuctionEndDecided().
         run_to_block(610);
@@ -460,6 +466,12 @@ fn new_test_ext_bidding_currency() {
         // Bid and test the reservation capabilities
         // Overbid and test the slashing capabilities
         // Complete an auction and test the sending capabilities
+        run_to_block(1);
         assert_eq!(true, true);
+        assert_ok!(AuctionModule::bid(Origin::signed(1), 0, 109000));
+        assert_eq!(Balances::reserved_balance(&1), 10000);
+        assert_ok!(AuctionModule::bid(Origin::signed(2), 0, 15000));
+        assert_eq!(Balances::reserved_balance(&2), 15000);
+        assert_eq!(Balances::reserved_balance(&1), 0);
     })
 }
