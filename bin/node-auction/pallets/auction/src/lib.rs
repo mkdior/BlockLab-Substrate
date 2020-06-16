@@ -117,7 +117,9 @@ decl_error! {
         BidNotAccepted,
         InvalidBidPrice,
 
+        TryReserve,
         AmbitiousReserve,
+        AmbitiousUnreserve,
         AmbitiousTransfer,
         Unexplained,
     }
@@ -228,20 +230,20 @@ impl<T: Trait> Module<T> {
         //TODO(Hamza): Serve proper errors. Also perhaps implement Currency for our local trait
         // to avoid the use of Currency::X
         let now = <system::Module<T>>::block_number();
-        // TODO TODO TODO TODO TODO Add wrapping for these values!
-        println!("{}", amount.wrapping_sub(20));
-        println!("PREPREPREPREPRE");
-        if ((T::Currency::free_balance(target) - amount) < 0.into()) {
-            panic!("Good :D ");
-        }
+        // Make sure that the amount to be reserved isn't higher than the actual balance of the
+        // user trying to bid on the auction.
+        ensure!(
+            (T::Currency::free_balance(target) >= amount),
+            <Error<T>>::AmbitiousReserve
+        );
+        // Ensure that the withdrawel can be made.
         T::Currency::ensure_can_withdraw(
             target,
             amount,
             WithdrawReason::Reserve.into(),
             T::Currency::free_balance(target) - amount,
         )
-        .map_err(|_e| <Error<T>>::AmbitiousReserve)?;
-
+        .map_err(|_e| <Error<T>>::TryReserve)?;
         T::Currency::reserve(&target, amount);
 
         Ok(())
@@ -263,7 +265,15 @@ impl<T: Trait> Module<T> {
         // agreed upon reservation. If reserved is less than that, the amount due is stored in
         // overdraft.
         let overdraft = T::Currency::unreserve(from, amount);
+        // If the overdraft is larger than zero, it means that the reserved balance has been
+        // siphoned from by some other process, this is not meant to happen so stop the transfer if
+        // it does happen.
+        ensure!(!(overdraft > Zero::zero()), <Error<T>>::AmbitiousUnreserve);
+        // If for some reason we get through the ensure with some balance in overdraft, make sure
+        // to remove it from the total amount to at least get to the next checking phase where
+        // it'll fail regardless, in a more elgant manner.
         T::Currency::transfer(from, to, amount - overdraft, AllowDeath)?;
+
         let now = <system::Module<T>>::block_number();
 
         Ok(())

@@ -5,7 +5,10 @@ use sp_std::{
     cmp::{Eq, PartialEq},
     fmt::Debug,
 };
-/// Queued bid information.
+/// Bids which are placed prior to the auction's start-time are stored in these QueuedBid structs.
+/// Once the auction starts, the highest bid is automatically inserted, this is done to make sure
+/// that if an auction has to be finished as soon as possible, it should be displayed as early as
+/// the initiator wants it to be displayed
 #[cfg_attr(feature = "std", derive(PartialEq, Eq))]
 #[derive(Encode, Decode, RuntimeDebug, Clone, Copy)]
 pub struct QueuedBid<AccountId, Balance, AuctionId> {
@@ -21,7 +24,9 @@ pub struct QueuedBid<AccountId, Balance, AuctionId> {
 #[cfg_attr(feature = "std", derive(PartialEq, Eq))]
 #[derive(Encode, Decode, RuntimeDebug, Clone, Copy)]
 pub struct AuctionCoreInfo {
+    /// UNIX timestamp
     pub timestamp: u64,
+    /// Cargo information related to this timestamp
     pub cargo: (i32, i32),
 }
 

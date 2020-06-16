@@ -87,7 +87,7 @@ impl AuctionHandler<AccountId, Balance, BlockNumber, AuctionId> for Handler {
             auction_end: None,
         }
     }
-    //                                               (creator, slot_origin)
+
     fn on_auction_ended(
         _id: AuctionId,
         _recipients: (AccountId, AccountId),
@@ -467,11 +467,19 @@ fn new_test_ext_bidding_currency() {
         // Overbid and test the slashing capabilities
         // Complete an auction and test the sending capabilities
         run_to_block(1);
-        assert_eq!(true, true);
-        assert_ok!(AuctionModule::bid(Origin::signed(1), 0, 109000));
-        assert_eq!(Balances::reserved_balance(&1), 10000);
-        assert_ok!(AuctionModule::bid(Origin::signed(2), 0, 15000));
-        assert_eq!(Balances::reserved_balance(&2), 15000);
-        assert_eq!(Balances::reserved_balance(&1), 0);
+        assert_ok!(AuctionModule::bid(Origin::signed(3), 0, 10000));
+        assert_eq!(Balances::reserved_balance(&3), 10000);
+        assert_ok!(AuctionModule::bid(Origin::signed(4), 0, 15000));
+        assert_eq!(Balances::reserved_balance(&4), 15000);
+        assert_eq!(Balances::reserved_balance(&3), 0);
+        assert_eq!(Balances::free_balance(&1), 20000);
+
+        // Now, after the auctions have finished, check the balances to ensure that (1, pb-10000)
+        // and (2, pb-15000) where pb stands for previous balance.
+        run_to_block(100);
+        assert_eq!(Balances::free_balance(&3), 20000);
+        assert_eq!(Balances::free_balance(&4), 5000);
+
+        assert_eq!(Balances::free_balance(&1), 35000);
     })
 }
