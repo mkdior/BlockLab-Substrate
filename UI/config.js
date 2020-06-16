@@ -13,4 +13,4 @@ export default {
   }
 };
 
-export const default_endpoint = "wss://kusama-rpc.polkadot.io";
+export const default_endpoint = "wss://127.0.0.1:9944";
