@@ -62,6 +62,10 @@ impl system::Trait for AuctionTestRuntime {
     type OnNewAccount = ();
     type OnKilledAccount = ();
     type DbWeight = ();
+    type BaseCallFilter = ();
+    type BlockExecutionWeight = ();
+    type ExtrinsicBaseWeight = ();
+    type MaximumExtrinsicWeight = MaximumBlockWeight;
 }
 
 pub struct Handler;
