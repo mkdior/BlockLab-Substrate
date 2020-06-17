@@ -16,7 +16,7 @@ use frame_support::{
         Currency, ExistenceRequirement::AllowDeath, ReservableCurrency, WithdrawReason,
         WithdrawReasons,
     },
-    weights::{SimpleDispatchInfo, Weight},
+    weights::{DispatchInfo, Weight},
     IterableStorageDoubleMap, IterableStorageMap,
 };
 
@@ -131,7 +131,7 @@ decl_module! {
 
         fn deposit_event() = default;
 
-        #[weight = SimpleDispatchInfo::FixedNormal(100)]
+        #[weight = 10_000]
         pub fn bid(origin, id: T::AuctionId, #[compact] value: BalanceOf<T>) -> DispatchResult {
             let bidder = ensure_signed(origin)?;
             let mut auction = <Auctions<T>>::get(id).ok_or(Error::<T>::AuctionNotExist)?;

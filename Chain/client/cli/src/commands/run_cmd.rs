@@ -1,48 +1,41 @@
-// Copyright 2018-2020 Parity Technologies (UK) Ltd.
 // This file is part of Substrate.
 
-// Substrate is free software: you can redistribute it and/or modify
+// Copyright (C) 2018-2020 Parity Technologies (UK) Ltd.
+// SPDX-License-Identifier: GPL-3.0-or-later WITH Classpath-exception-2.0
+
+// This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Substrate is distributed in the hope that it will be useful,
+// This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Substrate.  If not, see <http://www.gnu.org/licenses/>.
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::arg_enums::RpcMethods;
 use crate::error::{Error, Result};
 use crate::params::ImportParams;
 use crate::params::KeystoreParams;
 use crate::params::NetworkParams;
+use crate::params::OffchainWorkerParams;
 use crate::params::SharedParams;
 use crate::params::TransactionPoolParams;
 use crate::CliConfiguration;
 use regex::Regex;
 use sc_service::{
-	config::{MultiaddrWithPeerId, PrometheusConfig, TransactionPoolOptions},
+	config::{BasePath, MultiaddrWithPeerId, PrometheusConfig, TransactionPoolOptions},
 	ChainSpec, Role,
 };
 use sc_telemetry::TelemetryEndpoints;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-use structopt::{clap::arg_enum, StructOpt};
-
-arg_enum! {
-	/// Whether off-chain workers are enabled.
-	#[allow(missing_docs)]
-	#[derive(Debug, Clone)]
-	pub enum OffchainWorkerEnabled {
-		Always,
-		Never,
-		WhenValidating,
-	}
-}
+use structopt::StructOpt;
 
 /// The `run` command used to run a node.
-#[derive(Debug, StructOpt, Clone)]
+#[derive(Debug, StructOpt)]
 pub struct RunCmd {
 	/// Enable validator mode.
 	///
@@ -72,7 +65,7 @@ pub struct RunCmd {
 	pub sentry: Vec<MultiaddrWithPeerId>,
 
 	/// Disable GRANDPA voter when running in validator mode, otherwise disable the GRANDPA observer.
-	#[structopt(long = "no-grandpa")]
+	#[structopt(long)]
 	pub no_grandpa: bool,
 
 	/// Experimental: Run in light client mode.
@@ -90,16 +83,24 @@ pub struct RunCmd {
 	/// Listen to all RPC interfaces.
 	///
 	/// Same as `--rpc-external`.
-	#[structopt(long = "unsafe-rpc-external")]
+	#[structopt(long)]
 	pub unsafe_rpc_external: bool,
 
-	/// Don't deny potentially unsafe RPCs when listening on external interfaces.
+	/// RPC methods to expose.
 	///
-	/// Default is false. This allows exposing RPC methods publicly (same as `--unsafe-{rpc,ws}-external` )
-	/// but will allow doing so even on validator nodes, which is prohibited by default.
-	/// Please do this if you know what you're doing.
-	#[structopt(long = "unsafe-rpc-expose")]
-	pub unsafe_rpc_expose: bool,
+	/// - `Unsafe`: Exposes every RPC method.
+	/// - `Safe`: Exposes only a safe subset of RPC methods, denying unsafe RPC methods.
+	/// - `Auto`: Acts as `Safe` if RPC is served externally, e.g. when `--{rpc,ws}-external` is passed,
+	///   otherwise acts as `Unsafe`.
+	#[structopt(
+		long,
+		value_name = "METHOD SET",
+		possible_values = &RpcMethods::variants(),
+		case_insensitive = true,
+		default_value = "Auto",
+		verbatim_doc_comment
+	)]
+	pub rpc_methods: RpcMethods,
 
 	/// Listen to all Websocket interfaces.
 	///
@@ -120,6 +121,10 @@ pub struct RunCmd {
 	/// Default is local.
 	#[structopt(long = "prometheus-external")]
 	pub prometheus_external: bool,
+
+	/// Specify IPC RPC server path
+	#[structopt(long = "ipc-path", value_name = "PATH")]
+	pub ipc_path: Option<String>,
 
 	/// Specify HTTP RPC server TCP port.
 	#[structopt(long = "rpc-port", value_name = "PORT")]
@@ -173,17 +178,9 @@ pub struct RunCmd {
 	#[structopt(long = "telemetry-url", value_name = "URL VERBOSITY", parse(try_from_str = parse_telemetry_endpoints))]
 	pub telemetry_endpoints: Vec<(String, u8)>,
 
-	/// Should execute offchain workers on every block.
-	///
-	/// By default it's only enabled for nodes that are authoring new blocks.
-	#[structopt(
-		long = "offchain-worker",
-		value_name = "ENABLED",
-		possible_values = &OffchainWorkerEnabled::variants(),
-		case_insensitive = true,
-		default_value = "WhenValidating"
-	)]
-	pub offchain_worker: OffchainWorkerEnabled,
+	#[allow(missing_docs)]
+	#[structopt(flatten)]
+	pub offchain_worker_params: OffchainWorkerParams,
 
 	#[allow(missing_docs)]
 	#[structopt(flatten)]
@@ -248,12 +245,25 @@ pub struct RunCmd {
 	pub max_runtime_instances: Option<usize>,
 
 	/// Specify a list of sentry node public addresses.
+	///
+	/// Can't be used with --public-addr as the sentry node would take precedence over the public address
+	/// specified there.
 	#[structopt(
 		long = "sentry-nodes",
 		value_name = "ADDR",
-		conflicts_with_all = &[ "sentry" ]
+		conflicts_with_all = &[ "sentry", "public-addr" ]
 	)]
 	pub sentry_nodes: Vec<MultiaddrWithPeerId>,
+
+	/// Run a temporary node.
+	///
+	/// A temporary directory will be created to store the configuration and will be deleted
+	/// at the end of the process.
+	///
+	/// Note: the directory is random per process execution. This directory is used as base path
+	/// which includes: database, node key and keystore.
+	#[structopt(long, conflicts_with = "base-path")]
+	pub tmp: bool,
 }
 
 impl RunCmd {
@@ -298,6 +308,10 @@ impl CliConfiguration for RunCmd {
 
 	fn keystore_params(&self) -> Option<&KeystoreParams> {
 		Some(&self.keystore_params)
+	}
+
+	fn offchain_worker_params(&self) -> Option<&OffchainWorkerParams> {
+		Some(&self.offchain_worker_params)
 	}
 
 	fn node_name(&self) -> Result<String> {
@@ -417,35 +431,30 @@ impl CliConfiguration for RunCmd {
 		let interface = rpc_interface(
 			self.rpc_external,
 			self.unsafe_rpc_external,
-			self.unsafe_rpc_expose,
+			self.rpc_methods,
 			self.validator
 		)?;
 
 		Ok(Some(SocketAddr::new(interface, self.rpc_port.unwrap_or(9933))))
 	}
 
+	fn rpc_ipc(&self) -> Result<Option<String>> {
+		Ok(self.ipc_path.clone())
+	}
+
 	fn rpc_ws(&self) -> Result<Option<SocketAddr>> {
 		let interface = rpc_interface(
 			self.ws_external,
 			self.unsafe_ws_external,
-			self.unsafe_rpc_expose,
+			self.rpc_methods,
 			self.validator
 		)?;
 
 		Ok(Some(SocketAddr::new(interface, self.ws_port.unwrap_or(9944))))
 	}
 
-	fn unsafe_rpc_expose(&self) -> Result<bool> {
-		Ok(self.unsafe_rpc_expose)
-	}
-
-	fn offchain_worker(&self, role: &Role) -> Result<bool> {
-		Ok(match (&self.offchain_worker, role) {
-			(OffchainWorkerEnabled::WhenValidating, Role::Authority { .. }) => true,
-			(OffchainWorkerEnabled::Always, _) => true,
-			(OffchainWorkerEnabled::Never, _) => false,
-			(OffchainWorkerEnabled::WhenValidating, _) => false,
-		})
+	fn rpc_methods(&self) -> Result<sc_service::config::RpcMethods> {
+		Ok(self.rpc_methods.into())
 	}
 
 	fn transaction_pool(&self) -> Result<TransactionPoolOptions> {
@@ -454,6 +463,14 @@ impl CliConfiguration for RunCmd {
 
 	fn max_runtime_instances(&self) -> Result<Option<usize>> {
 		Ok(self.max_runtime_instances.map(|x| x.min(256)))
+	}
+
+	fn base_path(&self) -> Result<Option<BasePath>> {
+		Ok(if self.tmp {
+			Some(BasePath::new_temp_dir()?)
+		} else {
+			self.shared_params().base_path()
+		})
 	}
 }
 
@@ -482,23 +499,26 @@ pub fn is_node_name_valid(_name: &str) -> std::result::Result<(), &str> {
 fn rpc_interface(
 	is_external: bool,
 	is_unsafe_external: bool,
-	is_unsafe_rpc_expose: bool,
+	rpc_methods: RpcMethods,
 	is_validator: bool,
 ) -> Result<IpAddr> {
-	if is_external && is_validator && !is_unsafe_rpc_expose {
+	if is_external && is_validator && rpc_methods != RpcMethods::Unsafe {
 		return Err(Error::Input(
 			"--rpc-external and --ws-external options shouldn't be \
-		used if the node is running as a validator. Use `--unsafe-rpc-external` if you understand \
-		the risks. See the options description for more information."
+		used if the node is running as a validator. Use `--unsafe-rpc-external` \
+		or `--rpc-methods=unsafe` if you understand the risks. See the options \
+		description for more information."
 				.to_owned(),
 		));
 	}
 
 	if is_external || is_unsafe_external {
-		log::warn!(
-			"It isn't safe to expose RPC publicly without a proxy server that filters \
-		available set of RPC methods."
-		);
+		if rpc_methods == RpcMethods::Unsafe {
+			log::warn!(
+				"It isn't safe to expose RPC publicly without a proxy server that filters \
+			available set of RPC methods."
+			);
+		}
 
 		Ok(Ipv4Addr::UNSPECIFIED.into())
 	} else {

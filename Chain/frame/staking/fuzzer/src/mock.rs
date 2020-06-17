@@ -1,18 +1,19 @@
-// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Substrate.
 
-// Substrate is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
+// Copyright (C) 2020 Parity Technologies (UK) Ltd.
+// SPDX-License-Identifier: Apache-2.0
 
-// Substrate is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-
-// You should have received a copy of the GNU General Public License
-// along with Substrate.  If not, see <http://www.gnu.org/licenses/>.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// 	http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 //! Mock file for staking fuzzing.
 
@@ -24,11 +25,11 @@ type AccountIndex = u32;
 type BlockNumber = u64;
 type Balance = u64;
 
-type System = frame_system::Module<Test>;
-type Balances = pallet_balances::Module<Test>;
-type Staking = pallet_staking::Module<Test>;
-type Indices = pallet_indices::Module<Test>;
-type Session = pallet_session::Module<Test>;
+pub type System = frame_system::Module<Test>;
+pub type Balances = pallet_balances::Module<Test>;
+pub type Staking = pallet_staking::Module<Test>;
+pub type Indices = pallet_indices::Module<Test>;
+pub type Session = pallet_session::Module<Test>;
 
 impl_outer_origin! {
 	pub enum Origin for Test  where system = frame_system {}
@@ -56,7 +57,12 @@ impl Convert<u128, u64> for CurrencyToVoteHandler {
 pub struct Test;
 
 impl frame_system::Trait for Test {
+	type BaseCallFilter = ();
 	type Origin = Origin;
+	type DbWeight = ();
+	type BlockExecutionWeight = ();
+	type ExtrinsicBaseWeight = ();
+	type MaximumExtrinsicWeight = ();
 	type Index = AccountIndex;
 	type BlockNumber = BlockNumber;
 	type Call = Call;
@@ -150,18 +156,21 @@ pallet_staking_reward_curve::build! {
 parameter_types! {
 	pub const RewardCurve: &'static sp_runtime::curve::PiecewiseLinear<'static> = &I_NPOS;
 	pub const MaxNominatorRewardedPerValidator: u32 = 64;
+	pub const MaxIterations: u32 = 20;
 }
 
 pub type Extrinsic = sp_runtime::testing::TestXt<Call, ()>;
-type SubmitTransaction = frame_system::offchain::TransactionSubmitter<
-	sp_runtime::testing::UintAuthorityId,
-	Test,
-	Extrinsic,
->;
+
+impl<C> frame_system::offchain::SendTransactionTypes<C> for Test where
+	Call: From<C>,
+{
+	type OverarchingCall = Call;
+	type Extrinsic = Extrinsic;
+}
 
 impl pallet_staking::Trait for Test {
 	type Currency = Balances;
-	type Time = pallet_timestamp::Module<Self>;
+	type UnixTime = pallet_timestamp::Module<Self>;
 	type CurrencyToVote = CurrencyToVoteHandler;
 	type RewardRemainder = ();
 	type Event = ();
@@ -176,7 +185,8 @@ impl pallet_staking::Trait for Test {
 	type NextNewSession = Session;
 	type ElectionLookahead = ();
 	type Call = Call;
-	type SubmitTransaction = SubmitTransaction;
-	type KeyType = sp_runtime::testing::UintAuthorityId;
+	type MaxIterations = MaxIterations;
+	type MinSolutionScoreBump = ();
 	type MaxNominatorRewardedPerValidator = MaxNominatorRewardedPerValidator;
+	type UnsignedPriority = ();
 }
