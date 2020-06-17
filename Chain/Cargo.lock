@@ -1431,7 +1431,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-runtime-interface",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -1467,7 +1467,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "sp-tracing",
  "sp-version",
 ]
@@ -1479,7 +1479,7 @@ dependencies = [
  "parity-scale-codec",
  "serde",
  "sp-core",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -1503,7 +1503,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-state-machine",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "sp-tracing",
 ]
 
@@ -1566,7 +1566,7 @@ dependencies = [
  "sp-externalities",
  "sp-io",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "sp-version",
  "substrate-test-runtime-client",
 ]
@@ -2049,9 +2049,9 @@ dependencies = [
 
 [[package]]
 name = "honggfuzz"
-version = "0.5.47"
+version = "0.5.49"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c3de2c3273ef7735df1c5a72128ca85b1d20105b9aac643cdfd7a6e581311150"
+checksum = "832bac18a82ec7d6c21887daa8616b238fe90d5d5e762d0d4b9372cdaa9e097f"
 dependencies = [
  "arbitrary",
  "lazy_static",
@@ -3414,7 +3414,7 @@ dependencies = [
  "sp-offchain",
  "sp-runtime",
  "sp-session",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "sp-transaction-pool",
  "sp-version",
  "substrate-wasm-builder-runner",
@@ -3691,7 +3691,7 @@ dependencies = [
  "sp-runtime",
  "sp-session",
  "sp-staking",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "sp-transaction-pool",
  "sp-version",
  "substrate-wasm-builder-runner",
@@ -3946,7 +3946,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -3983,7 +3983,7 @@ dependencies = [
  "sp-inherents",
  "sp-io",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "sp-timestamp",
 ]
 
@@ -4002,7 +4002,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-staking",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -4018,7 +4018,7 @@ dependencies = [
  "sp-inherents",
  "sp-io",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -4038,7 +4038,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-staking",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "sp-timestamp",
 ]
 
@@ -4055,7 +4055,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -4069,7 +4069,7 @@ dependencies = [
  "serde",
  "sp-io",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -4086,7 +4086,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -4109,7 +4109,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-sandbox",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "wabt",
  "wasmi-validation",
 ]
@@ -4120,7 +4120,7 @@ version = "2.0.0-dev"
 dependencies = [
  "parity-scale-codec",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -4150,7 +4150,7 @@ dependencies = [
  "parity-scale-codec",
  "sp-api",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -4168,7 +4168,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "sp-storage",
 ]
 
@@ -4185,7 +4185,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -4203,7 +4203,7 @@ dependencies = [
  "sp-io",
  "sp-phragmen",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "substrate-test-utils",
 ]
 
@@ -4224,7 +4224,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -4240,7 +4240,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -4255,7 +4255,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -4272,7 +4272,7 @@ dependencies = [
  "sp-inherents",
  "sp-io",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -4286,7 +4286,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -4304,7 +4304,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-staking",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -4321,7 +4321,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -4340,7 +4340,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-staking",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -4356,7 +4356,7 @@ dependencies = [
  "sp-io",
  "sp-keyring",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -4370,7 +4370,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -4385,7 +4385,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -4401,7 +4401,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-staking",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -4419,7 +4419,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-staking",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -4433,7 +4433,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -4449,7 +4449,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -4464,7 +4464,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -4479,7 +4479,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -4498,7 +4498,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-staking",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "sp-trie",
 ]
 
@@ -4519,7 +4519,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -4535,7 +4535,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -4564,7 +4564,7 @@ dependencies = [
  "sp-phragmen",
  "sp-runtime",
  "sp-staking",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "sp-storage",
  "static_assertions",
  "substrate-test-utils",
@@ -4592,7 +4592,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -4609,7 +4609,7 @@ dependencies = [
  "sp-inherents",
  "sp-io",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "sp-timestamp",
 ]
 
@@ -4625,7 +4625,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "sp-storage",
 ]
 
@@ -4656,7 +4656,7 @@ dependencies = [
  "serde_json",
  "sp-api",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -4672,7 +4672,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -4688,7 +4688,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -4706,7 +4706,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "sp-storage",
 ]
 
@@ -5972,7 +5972,7 @@ dependencies = [
  "sp-panic-handler",
  "sp-runtime",
  "sp-state-machine",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "sp-trie",
  "sp-utils",
  "sp-version",
@@ -6007,7 +6007,7 @@ dependencies = [
  "sp-keyring",
  "sp-runtime",
  "sp-state-machine",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "sp-storage",
  "sp-test-primitives",
  "sp-transaction-pool",
@@ -6651,7 +6651,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-sandbox",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "substrate-wasm-builder-runner",
 ]
 
@@ -7178,7 +7178,7 @@ dependencies = [
  "derive_more",
  "log",
  "sp-core",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "sp-wasm-interface",
 ]
 
@@ -7192,7 +7192,7 @@ dependencies = [
  "sp-core",
  "sp-runtime",
  "sp-state-machine",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "sp-test-primitives",
  "sp-version",
 ]
@@ -7235,7 +7235,7 @@ dependencies = [
  "serde",
  "sp-core",
  "sp-io",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -7251,7 +7251,7 @@ dependencies = [
 
 [[package]]
 name = "sp-arithmetic"
-version = "2.0.0-dev"
+version = "2.0.0-rc3"
 dependencies = [
  "criterion 0.3.1",
  "integer-sqrt",
@@ -7262,12 +7262,12 @@ dependencies = [
  "serde",
  "serde_json",
  "sp-debug-derive",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
 name = "sp-arithmetic-fuzzer"
-version = "2.0.0-dev"
+version = "2.0.0-rc3"
 dependencies = [
  "honggfuzz",
  "num-bigint",
@@ -7284,7 +7284,7 @@ dependencies = [
  "sp-api",
  "sp-application-crypto",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -7294,7 +7294,7 @@ dependencies = [
  "parity-scale-codec",
  "sp-inherents",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -7305,7 +7305,7 @@ dependencies = [
  "sp-api",
  "sp-inherents",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -7348,7 +7348,7 @@ dependencies = [
  "sp-inherents",
  "sp-runtime",
  "sp-state-machine",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "sp-test-primitives",
  "sp-utils",
  "sp-version",
@@ -7363,7 +7363,7 @@ dependencies = [
  "sp-application-crypto",
  "sp-inherents",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "sp-timestamp",
 ]
 
@@ -7378,7 +7378,7 @@ dependencies = [
  "sp-consensus-vrf",
  "sp-inherents",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "sp-timestamp",
 ]
 
@@ -7390,7 +7390,7 @@ dependencies = [
  "sp-api",
  "sp-core",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -7401,7 +7401,7 @@ dependencies = [
  "schnorrkel",
  "sp-core",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -7439,7 +7439,7 @@ dependencies = [
  "sp-externalities",
  "sp-runtime-interface",
  "sp-serializer",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "sp-storage",
  "substrate-bip39",
  "tiny-bip39",
@@ -7459,7 +7459,7 @@ dependencies = [
 
 [[package]]
 name = "sp-debug-derive"
-version = "2.0.0-dev"
+version = "2.0.0-rc3"
 dependencies = [
  "proc-macro2",
  "quote 1.0.3",
@@ -7471,7 +7471,7 @@ name = "sp-externalities"
 version = "0.8.0-dev"
 dependencies = [
  "environmental",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "sp-storage",
 ]
 
@@ -7484,7 +7484,7 @@ dependencies = [
  "sp-api",
  "sp-application-crypto",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -7493,7 +7493,7 @@ version = "2.0.0-dev"
 dependencies = [
  "parity-scale-codec",
  "sp-inherents",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -7504,7 +7504,7 @@ dependencies = [
  "parity-scale-codec",
  "parking_lot 0.10.2",
  "sp-core",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -7521,7 +7521,7 @@ dependencies = [
  "sp-externalities",
  "sp-runtime-interface",
  "sp-state-machine",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "sp-trie",
  "sp-wasm-interface",
 ]
@@ -7562,7 +7562,7 @@ dependencies = [
  "sp-phragmen",
  "sp-phragmen-compact",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "substrate-test-utils",
 ]
 
@@ -7584,7 +7584,7 @@ dependencies = [
  "rand 0.7.3",
  "sp-phragmen",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -7615,7 +7615,7 @@ dependencies = [
  "sp-inherents",
  "sp-io",
  "sp-state-machine",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -7631,7 +7631,7 @@ dependencies = [
  "sp-runtime-interface-proc-macro",
  "sp-runtime-interface-test-wasm",
  "sp-state-machine",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "sp-tracing",
  "sp-wasm-interface",
  "static_assertions",
@@ -7670,7 +7670,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime-interface",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "substrate-wasm-builder-runner",
 ]
 
@@ -7681,7 +7681,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime-interface",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "substrate-wasm-builder-runner",
 ]
 
@@ -7693,7 +7693,7 @@ dependencies = [
  "parity-scale-codec",
  "sp-core",
  "sp-io",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "sp-wasm-interface",
  "wabt",
  "wasmi",
@@ -7714,7 +7714,7 @@ dependencies = [
  "sp-api",
  "sp-core",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -7723,7 +7723,7 @@ version = "2.0.0-dev"
 dependencies = [
  "parity-scale-codec",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -7754,7 +7754,7 @@ checksum = "eca806523d5df8082c89da042e31292f0c8f6e6ad9c3cfc312edfffde6a08490"
 
 [[package]]
 name = "sp-std"
-version = "2.0.0-dev"
+version = "2.0.0-rc3"
 
 [[package]]
 name = "sp-storage"
@@ -7764,7 +7764,7 @@ dependencies = [
  "ref-cast",
  "serde",
  "sp-debug-derive",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -7788,7 +7788,7 @@ dependencies = [
  "sp-api",
  "sp-inherents",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "wasm-timer",
 ]
 
@@ -7824,7 +7824,7 @@ dependencies = [
  "parity-scale-codec",
  "sp-core",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "trie-bench",
  "trie-db",
  "trie-root",
@@ -7849,7 +7849,7 @@ dependencies = [
  "parity-scale-codec",
  "serde",
  "sp-runtime",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
 ]
 
 [[package]]
@@ -7858,7 +7858,7 @@ version = "2.0.0-dev"
 dependencies = [
  "impl-trait-for-tuples",
  "parity-scale-codec",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "wasmi",
 ]
 
@@ -8145,7 +8145,7 @@ dependencies = [
  "sp-runtime-interface",
  "sp-session",
  "sp-state-machine",
- "sp-std 2.0.0-dev",
+ "sp-std 2.0.0-rc3",
  "sp-transaction-pool",
  "sp-trie",
  "sp-version",

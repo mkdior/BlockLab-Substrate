@@ -1,5 +1,4 @@
 #![cfg_attr(not(feature = "std"), no_std)]
-#![cfg_attr(feature = "strict", deny(warnings))]
 
 // Make the WASM binary available.
 #[cfg(feature = "std")]
@@ -182,6 +181,12 @@ sp_core::wasm_export_functions! {
 			val => 40,
 		}
 	}
+
+
+	fn test_offchain_index_set() {
+		sp_io::offchain_index::set(b"k", b"v");
+	}
+
 
 	fn test_offchain_local_storage() -> bool {
 		let kind = sp_core::offchain::StorageKind::PERSISTENT;

@@ -1,28 +1,37 @@
-// Copyright 2019-2020 Parity Technologies (UK) Ltd.
 // This file is part of Substrate.
 
-// Substrate is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
+// Copyright (C) 2019-2020 Parity Technologies (UK) Ltd.
+// SPDX-License-Identifier: Apache-2.0
 
-// Substrate is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// 	http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-// You should have received a copy of the GNU General Public License
-// along with Substrate.  If not, see <http://www.gnu.org/licenses/>.
+//! General tests for construct_runtime macro, test for:
+//! * error declareed with decl_error works
+//! * integrity test is generated
 
 #![recursion_limit="128"]
 
 use sp_runtime::{generic, traits::{BlakeTwo256, Block as _, Verify}, DispatchError};
 use sp_core::{H256, sr25519};
-use frame_support::weights::{SimpleDispatchInfo, MINIMUM_WEIGHT};
+use sp_std::cell::RefCell;
 
 mod system;
 
 pub trait Currency {}
+
+thread_local! {
+    pub static INTEGRITY_TEST_EXEC: RefCell<u32> = RefCell::new(0);
+}
 
 mod module1 {
 	use super::*;
@@ -33,7 +42,7 @@ mod module1 {
 		pub struct Module<T: Trait<I>, I: Instance = DefaultInstance> for enum Call
 			where origin: <T as system::Trait>::Origin
 		{
-			#[weight = SimpleDispatchInfo::FixedNormal(MINIMUM_WEIGHT)]
+			#[weight = 0]
 			pub fn fail(_origin) -> frame_support::dispatch::DispatchResult {
 				Err(Error::<T, I>::Something.into())
 			}
@@ -60,9 +69,13 @@ mod module2 {
 		pub struct Module<T: Trait> for enum Call
 			where origin: <T as system::Trait>::Origin
 		{
-			#[weight = SimpleDispatchInfo::FixedNormal(MINIMUM_WEIGHT)]
+			#[weight = 0]
 			pub fn fail(_origin) -> frame_support::dispatch::DispatchResult {
 				Err(Error::<T>::Something.into())
+			}
+
+			fn integrity_test() {
+				INTEGRITY_TEST_EXEC.with(|i| *i.borrow_mut() += 1);
 			}
 		}
 	}
@@ -88,12 +101,14 @@ pub type BlockNumber = u64;
 pub type Index = u64;
 
 impl system::Trait for Runtime {
+	type BaseCallFilter = ();
 	type Hash = H256;
 	type Origin = Origin;
 	type BlockNumber = BlockNumber;
 	type AccountId = AccountId;
 	type Event = Event;
 	type ModuleToIndex = ModuleToIndex;
+	type Call = Call;
 }
 
 frame_support::construct_runtime!(
@@ -135,4 +150,10 @@ fn check_module2_error_type() {
 		Module2::fail(system::Origin::<Runtime>::Root.into()),
 		Err(DispatchError::Module { index: 2, error: 0, message: Some("Something") }),
 	);
+}
+
+#[test]
+fn integrity_test_works() {
+	__construct_runtime_integrity_test::runtime_integrity_tests();
+	assert_eq!(INTEGRITY_TEST_EXEC.with(|i| *i.borrow()), 1);
 }
