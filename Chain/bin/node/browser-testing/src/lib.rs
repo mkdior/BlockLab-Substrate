@@ -1,18 +1,19 @@
-// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Substrate.
 
-// Substrate is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
+// Copyright (C) 2020 Parity Technologies (UK) Ltd.
+// SPDX-License-Identifier: Apache-2.0
 
-// Substrate is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-
-// You should have received a copy of the GNU General Public License
-// along with Substrate.  If not, see <http://www.gnu.org/licenses/>.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// 	http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 //! # Running
 //! Running this test can be done with
@@ -32,13 +33,8 @@ use wasm_bindgen_futures::JsFuture;
 use wasm_bindgen::JsValue;
 use jsonrpc_core::types::{MethodCall, Success, Version, Params, Id};
 use serde::de::DeserializeOwned;
-use futures_timer::Delay;
-use std::time::Duration;
-use futures::FutureExt;
 
 wasm_bindgen_test_configure!(run_in_browser);
-
-const CHAIN_SPEC: &str = include_str!("../../cli/res/flaming-fir.json");
 
 fn rpc_call(method: &str) -> String {
     serde_json::to_string(&MethodCall {
@@ -59,26 +55,16 @@ fn deserialize_rpc_result<T: DeserializeOwned>(js_value: JsValue) -> T {
 
 #[wasm_bindgen_test]
 async fn runs() {
-    let mut client = node_cli::start_client(CHAIN_SPEC.into(), "info".into())
+    let mut client = node_cli::start_client(None, "info".into())
             .await
             .unwrap();
 
-    let mut test_timeout = Delay::new(Duration::from_secs(45));
-    loop {
-        // Check that timeout hasn't expired.
-        assert!((&mut test_timeout).now_or_never().is_none(), "Test timed out.");
-
-        // Let the node do a bit of work.
-        Delay::new(Duration::from_secs(5)).await;
-
-        let state: sc_rpc_api::system::Health = deserialize_rpc_result(
-            JsFuture::from(client.rpc_send(&rpc_call("system_health")))
-                .await
-                .unwrap()
-        );
-    
-        if state.should_have_peers && state.peers > 0 && state.is_syncing {
-            break;
-        }
-    }
+    // Check that the node handles rpc calls.
+    // TODO: Re-add the code that checks if the node is syncing.
+    let chain_name: String = deserialize_rpc_result(
+        JsFuture::from(client.rpc_send(&rpc_call("system_chain")))
+            .await
+            .unwrap()
+    );
+    assert_eq!(chain_name, "Development");
 }

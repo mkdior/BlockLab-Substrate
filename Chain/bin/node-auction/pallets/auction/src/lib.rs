@@ -98,7 +98,7 @@ decl_event!(
         // Called when a bid is placed.
         Bid(AuctionId, AccountId, Balance),
         // Called when a bid is queued.
-        BidQueued(QueuedBid<AccountId, Balance, AuctionId>),
+        BidQueued(AccountId, Balance, AuctionId),
         // Called when a queued bid is placed
         BidQueuedPlaced(AuctionId, AccountId, Balance),
         // Called when an auction ends with 1+ bids.
@@ -146,7 +146,7 @@ decl_module! {
                 // have the auction ID's exposed through a double map, this way we can search
                 // focusing just on the auction ID, which saves us a loop.
                 for (bnum, qbid) in <QueuedBids<T>>::iter() {
-                    println!("Queued bid under block number: {} :: {:#?}", bnum, qbid);
+                    //println!("Queued bid under block number: {} :: {:#?}", bnum, qbid);
                 }
 
                 // Assemble our queued bid.
@@ -155,7 +155,7 @@ decl_module! {
                     auction_id: id,
                 };
 
-                println!("{:#?} being inserted -- queued bid.", queued_bid);
+                //println!("{:#?} being inserted -- queued bid.", queued_bid);
 
                 // Currently bids are queued regardless of the iniatiator's balance. This enables
                 // bidders to cancel each-other's bids out by bidding something higher than the
@@ -165,7 +165,7 @@ decl_module! {
                 // this runtime can pull from it. Perhaps something else is needed to make sure
                 // that the unreserving funds are always successful.
                 <QueuedBids<T>>::insert(auction.start, queued_bid.clone());
-                Self::deposit_event(RawEvent::BidQueued(queued_bid));
+                Self::deposit_event(RawEvent::BidQueued(queued_bid.bid.0, queued_bid.bid.1, queued_bid.auction_id));
                 return Ok(());
             }
 
@@ -185,7 +185,7 @@ decl_module! {
                 Self::unreserve_funds(previous_bidder, *previous_bid);
             } else {
                 // If needed, add additional handling here for when there's no previous bid.
-                println!("No previous bid, let's not unreserve the unreservable.");
+                //println!("No previous bid, let's not unreserve the unreservable.");
             }
 
             // In case we're expecting a new end_time, replace it. This in essence extends the
@@ -289,11 +289,11 @@ impl<T: Trait> Module<T> {
     fn place_queued_bid(
         qbid: QueuedBid<T::AccountId, BalanceOf<T>, T::AuctionId>,
     ) -> DispatchResult {
-        println!(
-            "Queued bid passed to the bidder by the initialier: Block : {} :: Bid : {:?}",
-            <frame_system::Module<T>>::block_number(),
-            qbid
-        );
+        //println!(
+        //    "Queued bid passed to the bidder by the initialier: Block : {} :: Bid : {:?}",
+        //    <frame_system::Module<T>>::block_number(),
+        //    qbid
+        //);
 
         let mut auction = <Auctions<T>>::get(qbid.auction_id).ok_or(Error::<T>::AuctionNotExist)?;
         let block_number = <frame_system::Module<T>>::block_number();
@@ -325,10 +325,10 @@ impl<T: Trait> Module<T> {
 
         // Update the auction's bid with our queued bid.
         auction.bid = Some((qbid.bid.0.clone(), qbid.bid.1));
-        println!(
-            "Queued bid placed :: Updated auction information :: {:#?}",
-            auction
-        );
+        //println!(
+        //    "Queued bid placed :: Updated auction information :: {:#?}",
+        //    auction
+        //);
         <Auctions<T>>::insert(qbid.auction_id, auction);
         Self::deposit_event(RawEvent::BidQueuedPlaced(
             qbid.auction_id,
@@ -341,10 +341,10 @@ impl<T: Trait> Module<T> {
 
     fn _on_initialize(now: T::BlockNumber) {
         for qbid in <QueuedBids<T>>::take(&now) {
-            println!(
-                "Queued bid caught by the initializer : Block {} :: Bid {:?}",
-                now, qbid
-            );
+            //println!(
+            //    "Queued bid caught by the initializer : Block {} :: Bid {:?}",
+            //    now, qbid
+            //);
 
             Self::place_queued_bid(qbid);
         }
@@ -360,7 +360,7 @@ impl<T: Trait> Module<T> {
         for (auction_id, _) in <AuctionEndTime<T>>::drain_prefix(&now) {
             // Drain_prefix removes all keys under the specified blocknumber
             if let Some(auction) = <Auctions<T>>::take(&auction_id) {
-                println!("Current auction being finalized : {:?}", auction);
+                //println!("Current auction being finalized : {:?}", auction);
                 T::Handler::on_auction_ended(
                     auction_id,
                     (auction.creator, auction.slot_origin),
@@ -368,7 +368,7 @@ impl<T: Trait> Module<T> {
                 );
             } else if let None = <Auctions<T>>::take(&auction_id) {
                 // Auction_id not found, something went wrong here.
-                println!("Something went wrong");
+                //println!("Something went wrong");
             }
         }
     }
@@ -397,7 +397,7 @@ impl<T: Trait> Auction<T::AccountId, T::BlockNumber> for Module<T> {
         if let Some(new_end) = info.end {
             <AuctionEndTime<T>>::insert(&new_end, id, true);
         }
-        println!("UPDATING auction");
+        //println!("UPDATING auction");
         <Auctions<T>>::insert(id, info);
 
         Ok(())
