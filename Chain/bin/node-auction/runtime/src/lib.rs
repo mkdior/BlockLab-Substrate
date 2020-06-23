@@ -1,3 +1,5 @@
+//! The Substrate Node Auction runtime. This can be compiled with `#[no_std]`, ready for Wasm.
+
 #![cfg_attr(not(feature = "std"), no_std)]
 // `construct_runtime!` does a lot of recursion and requires us to increase the limit to 256.
 #![recursion_limit = "256"]
@@ -14,7 +16,6 @@ use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
 use sp_runtime::traits::{
     BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, NumberFor, Saturating, Verify,
 };
-use auction_traits::auction::*;
 use sp_runtime::{
     create_runtime_str, generic, impl_opaque_keys,
     transaction_validity::{TransactionSource, TransactionValidity},
@@ -41,9 +42,17 @@ pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
 pub use timestamp::Call as TimestampCall;
 
-/// Importing our auctioning pallet
-/// Path to it is defined in our Cargo.toml
+use auction_traits::auction::*;
+
+/// Importing a auction pallet
 pub use auction;
+
+/// And index to an auction
+pub type AuctionId = u128;
+
+/// Generic container information datatype, this is used because using regular types doesn't work
+/// in conjunction with custom structs.
+pub type GeneralInformationContainer = u64;
 
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -62,11 +71,10 @@ pub type AccountIndex = u32;
 /// Balance of an account.
 pub type Balance = u128;
 
+pub type Currency = ();
+
 /// Index of a transaction in the chain.
 pub type Index = u32;
-
-/// The ID of an auction
-pub type AuctionId = u128;
 
 /// A hash of some data used by the chain.
 pub type Hash = sp_core::H256;
@@ -258,15 +266,6 @@ impl sudo::Trait for Runtime {
     type Event = Event;
     type Call = Call;
 }
-//parameter_types! {
-//    pub const BlockHashCount: u64 = 250;
-//    pub const MaximumBlockWeight: u32 = 1024;
-//    pub const MaximumBlockLength: u32 = 2 * 1024;
-//    pub const AvailableBlockRatio: Perbill = Perbill::from_percent(75);
-//    pub const ExistentialDeposit: u64 = 1;
-//    pub const TransferFee: u64 = 0;
-//    pub const CreationFee: u64 = 0;
-//}
 
 pub struct Handler;
 
@@ -279,8 +278,8 @@ impl AuctionHandler<AccountId, Balance, BlockNumber, AuctionId> for Handler {
     ) -> OnNewBidResult<BlockNumber> {
         if let Some(bid) = last_bid_ {
             //println!(
-            //    "Last bid information [{0:#?}] \\ 
-	    //    Current bid information [{1:#?}]",
+            //    "Last bid information [{0:#?}] \\
+            //    Current bid information [{1:#?}]",
             //    bid, new_bid_
             //);
         } else if let None = last_bid_ {
@@ -300,7 +299,7 @@ impl AuctionHandler<AccountId, Balance, BlockNumber, AuctionId> for Handler {
         if let Some(winner) = winner_ {
             // Somebody has won, notify
             AuctionModule::transfer_funds(&winner.0, &recipients_.0, winner.1);
-            //AuctionModule::deposit_event(RawEvent::AuctionEndDecided(winner.0, id_));
+        //AuctionModule::deposit_event(RawEvent::AuctionEndDecided(winner.0, id_));
         //println!("The winner: {:?}", winner);
         } else if let None = winner_ {
             // Nobody has won, notify
@@ -310,29 +309,31 @@ impl AuctionHandler<AccountId, Balance, BlockNumber, AuctionId> for Handler {
     }
 }
 
+/// Used for the module auction in `./template.rs`
 impl auction::Trait for Runtime {
     type Event = Event;
     type Currency = balances::Module<Self>;
     type AuctionId = AuctionId;
+    type GeneralInformationContainer = GeneralInformationContainer;
     type Handler = Handler;
 }
 
 construct_runtime!(
-	pub enum Runtime where
-		Block = Block,
-		NodeBlock = opaque::Block,
-		UncheckedExtrinsic = UncheckedExtrinsic
-	{
-		System: system::{Module, Call, Config, Storage, Event<T>},
-		RandomnessCollectiveFlip: randomness_collective_flip::{Module, Call, Storage},
-		Timestamp: timestamp::{Module, Call, Storage, Inherent},
-		Aura: aura::{Module, Config<T>, Inherent(Timestamp)},
-		Grandpa: grandpa::{Module, Call, Storage, Config, Event},
-		Balances: balances::{Module, Call, Storage, Config<T>, Event<T>},
-		TransactionPayment: transaction_payment::{Module, Storage},
-		Sudo: sudo::{Module, Call, Config<T>, Storage, Event<T>},
-		AuctionModule: auction::{Module, Call, Storage, Config<T>, Event<T>},
-	}
+    pub enum Runtime where
+        Block = Block,
+        NodeBlock = opaque::Block,
+        UncheckedExtrinsic = UncheckedExtrinsic
+    {
+        System: system::{Module, Call, Config, Storage, Event<T>},
+        RandomnessCollectiveFlip: randomness_collective_flip::{Module, Call, Storage},
+        Timestamp: timestamp::{Module, Call, Storage, Inherent},
+        Aura: aura::{Module, Config<T>, Inherent(Timestamp)},
+        Grandpa: grandpa::{Module, Call, Storage, Config, Event},
+        Balances: balances::{Module, Call, Storage, Config<T>, Event<T>},
+        TransactionPayment: transaction_payment::{Module, Storage},
+        Sudo: sudo::{Module, Call, Config<T>, Storage, Event<T>},
+        AuctionModule: auction::{Module, Call, Storage, Event<T>, Config<T>},
+    }
 );
 
 /// The address format for describing accounts.

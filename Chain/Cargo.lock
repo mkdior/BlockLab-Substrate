@@ -2494,16 +2494,6 @@ dependencies = [
 
 [[package]]
 name = "kvdb"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cad096c6849b2ef027fabe35c4aed356d0e3d3f586d0a8361e5e17f1e50a7ce5"
-dependencies = [
- "parity-util-mem",
- "smallvec 1.4.0",
-]
-
-[[package]]
-name = "kvdb"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e763b2a9b500ba47948061d1e8bc3b5f03a8a1f067dbcf822a4d2c84d2b54a3a"
@@ -2514,22 +2504,11 @@ dependencies = [
 
 [[package]]
 name = "kvdb-memorydb"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4aa954d12cfac958822dfd77aab34f3eec71f103b918c4ab79ab59a36ee594ea"
-dependencies = [
- "kvdb 0.5.0",
- "parity-util-mem",
- "parking_lot 0.10.2",
-]
-
-[[package]]
-name = "kvdb-memorydb"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "73027d5e228de6f503b5b7335d530404fc26230a6ae3e09b33ec6e45408509a4"
 dependencies = [
- "kvdb 0.6.0",
+ "kvdb",
  "parity-util-mem",
  "parking_lot 0.10.2",
 ]
@@ -2541,7 +2520,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "84384eca250c7ff67877eda5336f28a86586aaee24acb945643590671f6bfce1"
 dependencies = [
  "fs-swap",
- "kvdb 0.6.0",
+ "kvdb",
  "log",
  "num_cpus",
  "owning_ref",
@@ -2560,8 +2539,8 @@ checksum = "6c7f36acb1841d4c701d30ae1f2cfd242e805991443f75f6935479ed3de64903"
 dependencies = [
  "futures 0.3.4",
  "js-sys",
- "kvdb 0.6.0",
- "kvdb-memorydb 0.6.0",
+ "kvdb",
+ "kvdb-memorydb",
  "log",
  "parity-util-mem",
  "send_wrapper 0.3.0",
@@ -2812,9 +2791,9 @@ dependencies = [
 
 [[package]]
 name = "libp2p-ping"
-version = "0.19.1"
+version = "0.19.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c189cf1dfe4b3f01e2c0fe5e97a6f5df8aeb6f3569e26981015eb7c08015ce5f"
+checksum = "ffb3c4f9273313357d4977799aec69f581cfe9568854919c5b8066018ccf59f5"
 dependencies = [
  "futures 0.3.4",
  "libp2p-core",
@@ -3313,15 +3292,17 @@ dependencies = [
 
 [[package]]
 name = "node-auction"
-version = "1.0.0"
+version = "2.0.0-rc3"
 dependencies = [
+ "auction-traits",
  "futures 0.3.4",
  "log",
  "node-auction-runtime",
+ "parking_lot 0.10.2",
  "sc-basic-authorship",
  "sc-cli",
- "sc-client",
  "sc-client-api",
+ "sc-consensus",
  "sc-consensus-aura",
  "sc-executor",
  "sc-finality-grandpa",
@@ -3341,7 +3322,7 @@ dependencies = [
 
 [[package]]
 name = "node-auction-runtime"
-version = "1.0.0"
+version = "2.0.0-rc3"
 dependencies = [
  "auction-traits",
  "frame-executive",
@@ -3380,7 +3361,7 @@ dependencies = [
  "fs_extra",
  "hash-db",
  "hex",
- "kvdb 0.6.0",
+ "kvdb",
  "kvdb-rocksdb",
  "lazy_static",
  "log",
@@ -3898,7 +3879,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-auction"
-version = "1.0.0"
+version = "2.0.0-rc3"
 dependencies = [
  "auction-traits",
  "frame-support",
@@ -5996,47 +5977,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "sc-client"
-version = "0.8.0-dev"
-dependencies = [
- "derive_more",
- "env_logger 0.7.1",
- "fnv",
- "futures 0.3.4",
- "hash-db",
- "hex-literal",
- "kvdb 0.5.0",
- "kvdb-memorydb 0.5.0",
- "log",
- "parity-scale-codec",
- "parking_lot 0.10.2",
- "rand 0.7.3",
- "sc-block-builder",
- "sc-client-api",
- "sc-executor",
- "sc-telemetry",
- "sp-api",
- "sp-blockchain",
- "sp-consensus",
- "sp-core",
- "sp-database",
- "sp-externalities",
- "sp-inherents",
- "sp-keyring",
- "sp-panic-handler",
- "sp-runtime",
- "sp-state-machine",
- "sp-std 2.0.0-rc3",
- "sp-trie",
- "sp-utils",
- "sp-version",
- "substrate-prometheus-endpoint",
- "substrate-test-runtime-client",
- "tempfile",
- "tracing",
-]
-
-[[package]]
 name = "sc-client-api"
 version = "2.0.0-rc3"
 dependencies = [
@@ -6045,8 +5985,8 @@ dependencies = [
  "futures 0.3.4",
  "hash-db",
  "hex-literal",
- "kvdb 0.6.0",
- "kvdb-memorydb 0.6.0",
+ "kvdb",
+ "kvdb-memorydb",
  "lazy_static",
  "log",
  "parity-scale-codec",
@@ -6081,8 +6021,8 @@ dependencies = [
  "blake2-rfc",
  "env_logger 0.7.1",
  "hash-db",
- "kvdb 0.6.0",
- "kvdb-memorydb 0.6.0",
+ "kvdb",
+ "kvdb-memorydb",
  "kvdb-rocksdb",
  "linked-hash-map",
  "log",
@@ -6173,6 +6113,7 @@ dependencies = [
  "parking_lot 0.10.2",
  "pdqselect",
  "rand 0.7.3",
+ "rand_chacha 0.2.2",
  "sc-block-builder",
  "sc-client-api",
  "sc-consensus-epochs",
@@ -6506,6 +6447,7 @@ version = "2.0.0-rc3"
 dependencies = [
  "derive_more",
  "hex",
+ "merlin",
  "parking_lot 0.10.2",
  "rand 0.7.3",
  "serde_json",
@@ -7537,6 +7479,7 @@ dependencies = [
  "sp-application-crypto",
  "sp-consensus",
  "sp-consensus-vrf",
+ "sp-core",
  "sp-inherents",
  "sp-runtime",
  "sp-std 2.0.0-rc3",
@@ -7592,6 +7535,7 @@ dependencies = [
  "pretty_assertions",
  "primitive-types",
  "rand 0.7.3",
+ "rand_chacha 0.2.2",
  "regex",
  "schnorrkel",
  "serde",
@@ -7615,7 +7559,7 @@ dependencies = [
 name = "sp-database"
 version = "2.0.0-rc3"
 dependencies = [
- "kvdb 0.6.0",
+ "kvdb",
  "parking_lot 0.10.2",
 ]
 

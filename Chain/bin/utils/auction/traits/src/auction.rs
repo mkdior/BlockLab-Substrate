@@ -22,12 +22,12 @@ pub struct QueuedBid<AccountId, Balance, AuctionId> {
 /// storing is the timestamp and the cargo information in a tuple of (number of containers, TEUs). For TEUs we're assuming (1TEU==1Container).
 /// The timestamp is stored in UNIX format :: https://en.wikipedia.org/wiki/Unix_time
 #[cfg_attr(feature = "std", derive(PartialEq, Eq))]
-#[derive(Encode, Decode, RuntimeDebug, Clone, Copy)]
-pub struct AuctionCoreInfo {
+#[derive(Clone, Copy, RuntimeDebug, Encode, Decode, Default)]
+pub struct AuctionCoreInfo<GeneralInformationContainer> {
     /// UNIX timestamp
-    pub timestamp: u64,
+    pub timestamp: GeneralInformationContainer,
     /// Cargo information related to this timestamp
-    pub cargo: (i32, i32),
+    pub cargo: (GeneralInformationContainer, GeneralInformationContainer),
 }
 
 /// Auction information. The creator of the auction is always the barge. Upon creating the auction,
@@ -35,7 +35,7 @@ pub struct AuctionCoreInfo {
 /// expanded into verification of slot ownership etc.
 #[cfg_attr(feature = "std", derive(PartialEq, Eq))]
 #[derive(Encode, Decode, RuntimeDebug, Clone, Copy)]
-pub struct AuctionInfo<AccountId, Balance, BlockNumber> {
+pub struct AuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer> {
     /// Creator of the auction (Barge)
     pub creator: AccountId,
     /// Owner of the initially issued slot (Terminal)
@@ -43,7 +43,7 @@ pub struct AuctionInfo<AccountId, Balance, BlockNumber> {
     /// Current bidder and bid price.
     pub bid: Option<(AccountId, Balance)>,
     /// Core auction information
-    pub core: AuctionCoreInfo,
+    pub core: AuctionCoreInfo<GeneralInformationContainer>,
     /// Define which block this auction will be started.
     pub start: BlockNumber,
     /// Define which block this auction will be ended.
@@ -51,7 +51,7 @@ pub struct AuctionInfo<AccountId, Balance, BlockNumber> {
 }
 
 /// Abstraction over a simple auction system.
-pub trait Auction<AccountId, BlockNumber> {
+pub trait Auction<AccountId, BlockNumber, GeneralInformationContainer> {
     /// The id of an AuctionInfo
     type AuctionId: FullCodec + Default + Copy + Eq + PartialEq + MaybeSerializeDeserialize + Debug;
     /// The price to bid.
@@ -60,17 +60,17 @@ pub trait Auction<AccountId, BlockNumber> {
     /// The auction info of `id`
     fn auction_info(
         id: Self::AuctionId,
-    ) -> Option<AuctionInfo<AccountId, Self::Balance, BlockNumber>>;
+    ) -> Option<AuctionInfo<AccountId, Self::Balance, BlockNumber, GeneralInformationContainer>>;
     /// Update the auction info of `id` with `info`
     fn update_auction(
         id: Self::AuctionId,
-        info: AuctionInfo<AccountId, Self::Balance, BlockNumber>,
+        info: AuctionInfo<AccountId, Self::Balance, BlockNumber, GeneralInformationContainer>,
     ) -> DispatchResult;
     /// Create new auction with specific startblock and endblock, return the id of the auction
     fn new_auction(
         barge: AccountId,
         terminal: AccountId,
-        core_info: AuctionCoreInfo,
+        core_info: AuctionCoreInfo<GeneralInformationContainer>,
         start: BlockNumber,
         end: Option<BlockNumber>,
     ) -> Self::AuctionId;

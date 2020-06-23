@@ -39,6 +39,12 @@ pub trait Trait: system::Trait + Sized {
     type Event: From<Event<Self>> + Into<<Self as system::Trait>::Event>;
     type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
     type AuctionId: Parameter + Member + AtLeast32Bit + Default + Copy + MaybeSerializeDeserialize;
+    type GeneralInformationContainer: Parameter
+        + Member
+        + AtLeast32Bit
+        + Default
+        + Copy
+        + MaybeSerializeDeserialize;
     type Handler: AuctionHandler<
         Self::AccountId,
         BalanceOf<Self>,
@@ -51,7 +57,7 @@ decl_storage! {
     trait Store for Module<T: Trait> as AuctionModule {
         // pub Auction get(fn auctions) config() <-- requires you to set the initial values in
         // Genesis configured for this runtime
-        pub Auctions get(fn auctions): map hasher(twox_64_concat) T::AuctionId => Option<AuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber>>;
+        pub Auctions get(fn auctions): map hasher(twox_64_concat) T::AuctionId => Option<AuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber, T::GeneralInformationContainer>>;
         pub AuctionsIndex get(fn auctions_index): T::AuctionId;
         pub AuctionEndTime get(fn auction_end_time): double_map hasher(twox_64_concat) T::BlockNumber, hasher(twox_64_concat) T::AuctionId => Option<bool>;
 
@@ -59,7 +65,7 @@ decl_storage! {
     }
         add_extra_genesis {
                                //        Barge       Terminal                          Start            End
-            config(_auctions): Vec<(T::AccountId, T::AccountId, AuctionCoreInfo, T::BlockNumber, T::BlockNumber)>;
+            config(_auctions): Vec<(T::AccountId, T::AccountId, Vec<T::GeneralInformationContainer>, T::BlockNumber, T::BlockNumber)>;
 
             build(|config: &GenesisConfig<T>| {
                 for (barge, terminal, core_info, start, end) in &config._auctions {
@@ -73,7 +79,7 @@ decl_storage! {
                     );
                 }
                 for &(ref barge, ref terminal, ref core_info, ref start, ref end) in config._auctions.iter() {
-                    <Module<T>>::new_auction(barge.clone(), terminal.clone(), *core_info, *start, Some(*end));
+                    <Module<T>>::new_auction(barge.clone(), terminal.clone(), AuctionCoreInfo { timestamp: core_info[0], cargo: (core_info[1], core_info[2]), }, *start, Some(*end));
                     }
             });
     }
@@ -374,19 +380,26 @@ impl<T: Trait> Module<T> {
     }
 }
 
-impl<T: Trait> Auction<T::AccountId, T::BlockNumber> for Module<T> {
+impl<T: Trait> Auction<T::AccountId, T::BlockNumber, T::GeneralInformationContainer> for Module<T> {
     type AuctionId = T::AuctionId;
     type Balance = BalanceOf<T>;
 
     fn auction_info(
         id: Self::AuctionId,
-    ) -> Option<AuctionInfo<T::AccountId, Self::Balance, T::BlockNumber>> {
+    ) -> Option<
+        AuctionInfo<T::AccountId, Self::Balance, T::BlockNumber, T::GeneralInformationContainer>,
+    > {
         Self::auctions(id)
     }
 
     fn update_auction(
         id: Self::AuctionId,
-        info: AuctionInfo<T::AccountId, Self::Balance, T::BlockNumber>,
+        info: AuctionInfo<
+            T::AccountId,
+            Self::Balance,
+            T::BlockNumber,
+            T::GeneralInformationContainer,
+        >,
     ) -> DispatchResult {
         let auction = <Auctions<T>>::get(id).ok_or(Error::<T>::AuctionNotExist)?;
 
@@ -406,7 +419,7 @@ impl<T: Trait> Auction<T::AccountId, T::BlockNumber> for Module<T> {
     fn new_auction(
         barge: T::AccountId,
         terminal: T::AccountId,
-        core_info: AuctionCoreInfo,
+        core_info: AuctionCoreInfo<T::GeneralInformationContainer>,
         start: T::BlockNumber,
         end: Option<T::BlockNumber>,
     ) -> Self::AuctionId {
