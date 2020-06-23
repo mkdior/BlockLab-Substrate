@@ -5,15 +5,12 @@
     <side-bar :background-color="backgroundColor">
       <!-- <mobile-menu slot="content"></mobile-menu> -->
       <sidebar-link to="/home">
-        <i class="tim-icons icon-tie-bow"></i>
         <p>Home</p>
       </sidebar-link>
       <sidebar-link to="/dashboard">
-        <i class="tim-icons icon-chart-pie-36"></i>
         <p>Dashboard</p>
       </sidebar-link>
       <sidebar-link to="/blocknumber">
-        <i class="tim-icons icon-atom"></i>
         <p>Block number</p>
       </sidebar-link>
     </side-bar>

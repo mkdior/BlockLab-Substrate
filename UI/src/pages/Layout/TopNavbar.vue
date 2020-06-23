@@ -15,9 +15,6 @@
             <span class="navbar-toggler-bar bar3"></span>
           </button>
         </div>
-        <a class="navbar-brand" href="https://dotleap.com"
-          ><img src="/favicon2.png" /> DotLeap.com</a
-        >
       </div>
       <button
         class="navbar-toggler"

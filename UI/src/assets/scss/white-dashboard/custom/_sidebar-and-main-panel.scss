@@ -38,7 +38,7 @@
 }
 .sidebar,
 .off-canvas-sidebar{
-    @include linear-gradient($primary-states, $primary);
+    background-color: #232323;
     height: calc(100vh - 90px);
     width: 230px;
     position: fixed;
@@ -51,7 +51,6 @@
     box-shadow: 0 2px 22px 0 rgba(0,0,0,.1), 0 4px 20px 0 rgba(0,0,0,.15);
     margin-top: 80px;
     margin-left: 20px;
-    border-radius: 5px;
 
     .sidebar-wrapper{
         width: $full-width;
@@ -138,7 +137,6 @@
       // @extend .animation-transition-general;
     }
     .logo-tim{
-      border-radius: 50%;
       border: 1px solid #333;
       display: block;
       height: 61px;
@@ -173,7 +171,6 @@
 
             > a{
                 margin: 10px 15px 0;
-                border-radius: $btn-round-radius;
                 color: $white;
                 display: block;
                 text-decoration: none;
@@ -217,7 +214,6 @@
                   top: 22px;
                   left: -4px;
                   background: $white;
-                  border-radius: 50%;
                 }
             }
 
@@ -246,7 +242,6 @@
                   top: 17px;
                   left: -4px;
                   background: $white;
-                  border-radius: 50%;
                 }
               }
               &:before{
@@ -257,7 +252,6 @@
                 top: 22px;
                 left: -4px;
                 background: rgba($white,0.6);
-                border-radius: 50%;
               }
             }
         }
@@ -344,7 +338,6 @@
     }
 
     .logo-tim{
-        border-radius: 50%;
         border: 1px solid #333;
         display: block;
         height: 61px;
@@ -387,7 +380,6 @@
             float: left;
             z-index: 5;
             margin-right: 10px;
-            border-radius: 50%;
             margin-left: 23px;
             box-shadow: $box-shadow-raised;
             @extend .animation-transition-general;
@@ -659,7 +651,6 @@
     right: auto;
     left: 0;
     margin: 0;
-    border-radius: 0;
     z-index: 1032;
     visibility: visible;
     overflow-y: visible;
@@ -686,7 +677,6 @@
       }
 
       .sidebar{
-
           @include transition(0.5s cubic-bezier(0.685, 0.0473, 0.346, 1));
           @include transform-translate-x(0px);
           &:before{

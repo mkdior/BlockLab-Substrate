@@ -2,8 +2,8 @@
   <div class="content">
     <card>
       <template slot="header">
-        <h5 class="title">Blocknumber</h5>
-        <p class="category">Outputs the block number</p>
+        <h5 class="title">Block Overview</h5>
+        <p class="category">Current Block : </p>
       </template>
       <div class="row">
         <div class="col-lg-2 col-md-3 col-sm-4 col-xs-6 col-xs-6">
