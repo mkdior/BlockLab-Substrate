@@ -1,0 +1,26 @@
+{
+  "AuctionId": "u64",
+  "Balance": "u64",
+  "BlockNumber": "u64",
+  "GeneralInformationContainer": "u64",
+  "QueuedBid": {
+    "bid": "(AccountId, Balance)",
+    "auction_id": "AuctionId"
+  },
+  "AuctionInfo": {
+    "creator": "AccountId",
+    "slot_origin": "AccountId",
+    "bid": "Option<(AccountId, Balance)>",
+    "core": "AuctionCoreInfo<u64>",
+    "start": "BlockNumber",
+    "End": "Option<BlockNumber>"
+  },
+  "AuctionCoreInfo": {
+    "timestamp": "u64",
+    "cargo": "(u64, u64)"
+  },
+  "OnNewBidResult": {
+    "accept_bid": "bool",
+    "auction_end": "Option<Option<BlockNumber>>"
+  }
+}
