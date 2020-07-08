@@ -64,8 +64,12 @@ decl_storage! {
         pub QueuedBids get(fn queued_bids): map hasher(twox_64_concat) T::BlockNumber => Option<QueuedBid<T::AccountId, BalanceOf<T>, T::AuctionId>>;
     }
         add_extra_genesis {
-                               //        Barge       Terminal                          Start            End
-            config(_auctions): Vec<(T::AccountId, T::AccountId, Vec<T::GeneralInformationContainer>, T::BlockNumber, T::BlockNumber)>;
+            config(_auctions):
+                Vec<(T::AccountId,
+                     T::AccountId,
+                     Vec<T::GeneralInformationContainer>,
+                     T::BlockNumber,
+                     T::BlockNumber)>;
 
             build(|config: &GenesisConfig<T>| {
                 for (barge, terminal, core_info, start, end) in &config._auctions {

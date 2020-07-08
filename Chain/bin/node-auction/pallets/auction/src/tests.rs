@@ -40,6 +40,7 @@ pub type AccountId = u64;
 pub type Balance = u64;
 pub type BlockNumber = u64;
 pub type AuctionId = u64;
+pub type GeneralInformationContainer = u64;
 
 impl system::Trait for AuctionTestRuntime {
     type Origin = Origin;
@@ -123,6 +124,7 @@ impl Trait for AuctionTestRuntime {
     type Currency = balances::Module<Self>;
     type AuctionId = AccountId;
     type Handler = Handler;
+    type GeneralInformationContainer = GeneralInformationContainer;
 }
 
 pub type System = system::Module<AuctionTestRuntime>;
@@ -158,7 +160,7 @@ pub struct EnvBuilder {
     auctions: Vec<(
         AccountId,
         AccountId,
-        AuctionCoreInfo,
+        Vec<u64>,//AuctionCoreInfo<<tests::AuctionTestRuntime as Trait>::GeneralInformationContainer>,
         BlockNumber,
         BlockNumber,
     )>,
@@ -184,40 +186,44 @@ impl EnvBuilder {
                 (
                     1,
                     5,
-                    AuctionCoreInfo {
-                        timestamp: 1594471764,
-                        cargo: (22, 22),
-                    },
+                    //AuctionCoreInfo {
+                    //    timestamp: 1594471764,
+                    //    cargo: (22, 22),
+                    //},
+                    vec![1u64, 2u64, 3u64],
                     0,
                     49,
                 ),
                 (
                     2,
                     6,
-                    AuctionCoreInfo {
-                        timestamp: 1594471764,
-                        cargo: (22, 22),
-                    },
+                    //AuctionCoreInfo {
+                    //    timestamp: 1594471764,
+                    //    cargo: (22, 22),
+                    //},
+                    vec![1u64, 2u64, 3u64],
                     0,
                     51,
                 ),
                 (
                     3,
                     7,
-                    AuctionCoreInfo {
-                        timestamp: 1594471764,
-                        cargo: (22, 22),
-                    },
+                    //AuctionCoreInfo {
+                    //    timestamp: 1594471764,
+                    //    cargo: (22, 22),
+                    //},
+                    vec![1u64, 2u64, 3u64],
                     0,
                     150,
                 ),
                 (
                     4,
                     8,
-                    AuctionCoreInfo {
-                        timestamp: 1594471764,
-                        cargo: (22, 22),
-                    },
+                    //AuctionCoreInfo {
+                    //    timestamp: 1594471764,
+                    //    cargo: (22, 22),
+                    //},
+                    vec![1u64, 2u64, 3u64],
                     0,
                     250,
                 ),
@@ -225,20 +231,22 @@ impl EnvBuilder {
                 (
                     1,
                     5,
-                    AuctionCoreInfo {
-                        timestamp: 1594471764,
-                        cargo: (22, 22),
-                    },
+                    //AuctionCoreInfo {
+                    //    timestamp: 1594471764,
+                    //    cargo: (22, 22),
+                    //},
+                    vec![1u64, 2u64, 3u64],
                     100,
                     500,
                 ),
                 (
                     2,
                     6,
-                    AuctionCoreInfo {
-                        timestamp: 1594471764,
-                        cargo: (22, 22),
-                    },
+                    //AuctionCoreInfo {
+                    //    timestamp: 1594471764,
+                    //    cargo: (22, 22),
+                    //},
+                    vec![1u64, 2u64, 3u64],
                     140,
                     600,
                 ),
