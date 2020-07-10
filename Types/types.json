@@ -13,7 +13,7 @@
     "bid": "Option<(AccountId, Balance)>",
     "core": "AuctionCoreInfo<u64>",
     "start": "BlockNumber",
-    "End": "Option<BlockNumber>"
+    "end": "Option<BlockNumber>"
   },
   "AuctionCoreInfo": {
     "timestamp": "u64",
