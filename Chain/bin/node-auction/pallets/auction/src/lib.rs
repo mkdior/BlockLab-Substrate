@@ -24,7 +24,7 @@ use frame_support::{
 use frame_system::{self as system, ensure_signed};
 
 #[allow(unused_imports)]
-use auction_traits::auction::{Auction, AuctionCoreInfo, AuctionHandler, AuctionInfo, QueuedBid};
+use auction_traits::auction::*;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -291,6 +291,116 @@ impl<T: Trait> Module<T> {
 
     fn auction_exists(id: T::AuctionId) -> bool {
         <Auctions<T>>::contains_key(id)
+    }
+
+    /// Returns an auction in its original form. Original means the format it's actually stored in the
+    /// database.
+    fn auction_query_informal(
+        id: T::AuctionId,
+    ) -> Result<
+        AuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber, T::GeneralInformationContainer>,
+        Error<T>,
+    > {
+        let mut auction = <Auctions<T>>::get(id).ok_or(<Error<T>>::AuctionNotExist)?;
+
+        Ok(auction)
+    }
+
+    /// Returns a vector of all currently stored auctions regardless of the auction's activity
+    /// status. Returns everything in its original form.
+    fn auction_all_query_informal(
+    ) -> Vec<AuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber, T::GeneralInformationContainer>>
+    {
+        // For debug purposes -- begin
+        for i in <Auctions<T>>::iter() {
+            println!("======");
+            println!("{:#?}", i);
+        }
+        // For debug purposes -- end
+
+        <Auctions<T>>::iter().map(|x| x.1).collect::<Vec<_>>()
+    }
+
+    fn auction_all_query_informal_status(
+        is_active: bool,
+    ) -> Vec<AuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber, T::GeneralInformationContainer>>
+    {
+        // For debug purposes -- begin
+        for i in
+            <Auctions<T>>::iter().filter(|x| x.1.start >= <frame_system::Module<T>>::block_number())
+        {
+            println!("======Inactive======");
+            println!("{:#?}", i);
+        }
+        // For debug purposes -- end
+
+        <Auctions<T>>::iter()
+            .filter(|x| {
+                // x = (AuctionId -> AuctionInfo)
+                x.1.start >= <frame_system::Module<T>>::block_number()
+            })
+            .map(|x| x.1)
+            .collect::<Vec<_>>()
+    }
+
+    fn auction_query_formal(
+        id: T::AuctionId,
+    ) -> Result<
+        UIAuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber, T::GeneralInformationContainer>,
+        Error<T>,
+    > {
+        let mut auction = <Auctions<T>>::get(id).ok_or(<Error<T>>::AuctionNotExist)?;
+
+        Ok(UIAuctionInfo {
+            slot_owner: auction.creator,
+            slot_origin: auction.slot_origin,
+            slot_time: auction.core.timestamp,
+            slot_num_cargo: auction.core.cargo.0,
+            slot_num_teu: auction.core.cargo.1,
+            auction_is_live: (<frame_system::Module<T>>::block_number() >= auction.start),
+            auction_highest_bid: auction.bid,
+            auction_end_time: auction.end,
+        })
+    }
+
+    fn auction_all_query_formal() -> Vec<
+        UIAuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber, T::GeneralInformationContainer>,
+    > {
+        <Auctions<T>>::iter()
+            .map(|x| UIAuctionInfo {
+                slot_owner: x.1.creator,
+                slot_origin: x.1.slot_origin,
+                slot_time: x.1.core.timestamp,
+                slot_num_cargo: x.1.core.cargo.0,
+                slot_num_teu: x.1.core.cargo.1,
+                auction_is_live: (<frame_system::Module<T>>::block_number() >= x.1.start),
+                auction_highest_bid: x.1.bid,
+                auction_end_time: x.1.end,
+            })
+            .collect::<Vec<_>>()
+    }
+
+    fn auction_all_query_formal_status(
+        is_active: bool,
+    ) -> Vec<
+        UIAuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber, T::GeneralInformationContainer>,
+    > {
+        <Auctions<T>>::iter()
+            .filter(|x| {
+                // x = (AuctionId -> AuctionInfo)
+                is_active != (x.1.start >= <frame_system::Module<T>>::block_number())
+            })
+            .map(|x| UIAuctionInfo {
+                slot_owner: x.1.creator,
+                slot_origin: x.1.slot_origin,
+                slot_time: x.1.core.timestamp,
+                slot_num_cargo: x.1.core.cargo.0,
+                slot_num_teu: x.1.core.cargo.1,
+                auction_is_live: is_active,
+                auction_highest_bid: x.1.bid,
+                auction_end_time: x.1.end,
+            })
+            .collect::<Vec<_>>()
     }
 
     /// Since queued bids are technically already placed, we're not dealing with an origin. Due to

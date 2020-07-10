@@ -50,6 +50,28 @@ pub struct AuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContai
     pub end: Option<BlockNumber>,
 }
 
+/// Auction information displayed to the user on request, this contains specific auction data.
+#[cfg_attr(feature = "std", derive(PartialEq, Eq))]
+#[derive(Encode, Decode, RuntimeDebug, Clone, Copy)]
+pub struct UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer> {
+    /// Original owner of the time-slot
+    pub slot_owner: AccountId,
+    /// Terminal which originally issued the time-slot
+    pub slot_origin: AccountId,
+    /// Slot time
+    pub slot_time: GeneralInformationContainer,
+    /// Maximum number of containers allowed during this slot
+    pub slot_num_cargo: GeneralInformationContainer,
+    /// Maximum number of containers in TEU allowed during this slot 
+    pub slot_num_teu: GeneralInformationContainer,
+    /// True == Live Auction | False == Queued Action
+    pub auction_is_live: bool,
+    /// The current highest bid placed on this auction (Bidder, Bid)
+    pub auction_highest_bid: Option<(AccountId, Balance)>,
+    /// The auction's end time in blocknumber format
+    pub auction_end_time: Option<BlockNumber>,
+}
+
 /// Abstraction over a simple auction system.
 pub trait Auction<AccountId, BlockNumber, GeneralInformationContainer> {
     /// The id of an AuctionInfo

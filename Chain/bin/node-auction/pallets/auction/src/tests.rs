@@ -160,7 +160,7 @@ pub struct EnvBuilder {
     auctions: Vec<(
         AccountId,
         AccountId,
-        Vec<u64>,//AuctionCoreInfo<<tests::AuctionTestRuntime as Trait>::GeneralInformationContainer>,
+        Vec<u64>, //AuctionCoreInfo<<tests::AuctionTestRuntime as Trait>::GeneralInformationContainer>,
         BlockNumber,
         BlockNumber,
     )>,
@@ -493,5 +493,23 @@ fn new_test_ext_bidding_currency() {
         assert_eq!(Balances::free_balance(&4), 5000);
 
         assert_eq!(Balances::free_balance(&1), 35000);
+    })
+}
+
+#[test]
+fn new_test_ext_auction_query() {
+    new_test_ext().execute_with(|| {
+        // let tau = AuctionModule::auction_query_informal(1);
+        run_to_block(60);
+        // println!("{:#?}", tau);
+        // Retrieve all auctions regardless of status
+        // AuctionModule::auction_all_query_informal();
+        // println!("{:?}", AuctionModule::auction_query_formal(1));
+        // Retrieve all inactive auction
+        // AuctionModule::auction_all_query_informal_status(false, 10);
+        let inactive_formal_auctions = AuctionModule::auction_all_query_formal_status(true);
+        for a in inactive_formal_auctions {
+            println!("{:?}", a);
+        }
     })
 }
