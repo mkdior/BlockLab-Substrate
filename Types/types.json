@@ -1,26 +1,35 @@
 {
-  "AuctionId": "u64",
-  "Balance": "u64",
-  "BlockNumber": "u64",
-  "GeneralInformationContainer": "u64",
-  "QueuedBid": {
-    "bid": "(AccountId, Balance)",
-    "auction_id": "AuctionId"
-  },
-  "AuctionInfo": {
-    "creator": "AccountId",
-    "slot_origin": "AccountId",
-    "bid": "Option<(AccountId, Balance)>",
-    "core": "AuctionCoreInfo<u64>",
-    "start": "BlockNumber",
-    "end": "Option<BlockNumber>"
-  },
-  "AuctionCoreInfo": {
-    "timestamp": "u64",
-    "cargo": "(u64, u64)"
-  },
-  "OnNewBidResult": {
-    "accept_bid": "bool",
-    "auction_end": "Option<Option<BlockNumber>>"
-  }
+   "AuctionId":"u64",
+   "Balance":"u64",
+   "BlockNumber":"u64",
+   "GeneralInformationContainer":"u64",
+   "QueuedBid":{
+      "bid":"(AccountId, Balance)",
+      "auction_id":"AuctionId"
+   },
+   "AuctionInfo":{
+      "creator":"AccountId",
+      "slot_origin":"AccountId",
+      "bid":"Option<(AccountId, Balance)>",
+      "core":"AuctionCoreInfo<GeneralInformationContainer>",
+      "start":"BlockNumber",
+      "end":"Option<BlockNumber>"
+   },
+   "UIAuctionInfo":{
+      "slot_owner":"AccountId",
+      "slot_origin":"AccountId",
+      "slot_time":"GeneralInformationContainer",
+      "slot_num_cargo":"GeneralInformationContainer",
+      "slot_num_teu":"GeneralInformationContainer",
+      "auction_is_live":"bool",
+      "auction_highest_bid":"Option<(AccountId, Balance)>"
+   },
+   "AuctionCoreInfo":{
+      "timestamp":"GeneralInformationContainer",
+      "cargo":"(GeneralInformationContainer, GeneralInformationContainer)"
+   },
+   "OnNewBidResult":{
+      "accept_bid":"bool",
+      "auction_end":"Option<Option<BlockNumber>>"
+   }
 }
