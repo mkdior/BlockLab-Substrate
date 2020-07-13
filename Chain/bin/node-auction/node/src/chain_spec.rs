@@ -49,15 +49,55 @@ pub fn development_config() -> ChainSpec {
                 vec![authority_keys_from_seed("Alice")],
                 get_account_id_from_seed::<sr25519::Public>("Alice"),
                 vec![
+                    // Begin Terminals //
                     get_account_id_from_seed::<sr25519::Public>("Alice"),
                     get_account_id_from_seed::<sr25519::Public>("Bob"),
+                    // End Terminals -- Rest are barges //
+                    get_account_id_from_seed::<sr25519::Public>("Charlie"),
+                    get_account_id_from_seed::<sr25519::Public>("Dave"),
+                    get_account_id_from_seed::<sr25519::Public>("Eve"),
+                    get_account_id_from_seed::<sr25519::Public>("Ferdie"),
                     get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
+                    get_account_id_from_seed::<sr25519::Public>("Charlie//stash"),
+                    get_account_id_from_seed::<sr25519::Public>("Dave//stash"),
+                    get_account_id_from_seed::<sr25519::Public>("Eve//stash"),
+                    get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
                     get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
                 ],
-                vec![(
-                    get_account_id_from_seed::<sr25519::Public>("Alice"),
-                    get_account_id_from_seed::<sr25519::Public>("Bob"),
-                )],
+                vec![
+                    (
+                        get_account_id_from_seed::<sr25519::Public>("Alice"),
+                        get_account_id_from_seed::<sr25519::Public>("Charlie"),
+                    ),
+                    (
+                        get_account_id_from_seed::<sr25519::Public>("Bob"),
+                        get_account_id_from_seed::<sr25519::Public>("Charlie"),
+                    ),
+                    (
+                        get_account_id_from_seed::<sr25519::Public>("Alice"),
+                        get_account_id_from_seed::<sr25519::Public>("Dave"),
+                    ),
+                    (
+                        get_account_id_from_seed::<sr25519::Public>("Bob"),
+                        get_account_id_from_seed::<sr25519::Public>("Dave"),
+                    ),
+                    (
+                        get_account_id_from_seed::<sr25519::Public>("Alice"),
+                        get_account_id_from_seed::<sr25519::Public>("Eve"),
+                    ),
+                    (
+                        get_account_id_from_seed::<sr25519::Public>("Bob"),
+                        get_account_id_from_seed::<sr25519::Public>("Eve"),
+                    ),
+                    (
+                        get_account_id_from_seed::<sr25519::Public>("Alice"),
+                        get_account_id_from_seed::<sr25519::Public>("Ferdie"),
+                    ),
+                    (
+                        get_account_id_from_seed::<sr25519::Public>("Bob"),
+                        get_account_id_from_seed::<sr25519::Public>("Ferdie"),
+                    ),
+                ],
                 true,
             )
         },
@@ -119,6 +159,19 @@ fn testnet_genesis(
     auction_initiators: Vec<(AccountId, AccountId)>,
     _enable_println: bool,
 ) -> GenesisConfig {
+    // Test auctions for our Development environment
+    let mut test_auctions = vec![
+        // Balance, Containers,  TEU, Start, End
+        (500,   100,    100,    0,      50  ),
+        (2040,  100,    100,    0,      100 ),
+        (948,   50,     50,     10,     500 ),
+        (2998,  500,    500,    100,    203 ),
+        (293,   10,     10,     0,      70  ),
+        (884,   200,    200,    20,     200 ),
+        (503,   400,    400,    29,     388 ),
+        (39894, 600,    600,    0,  1000000 ),
+    ];
+
     GenesisConfig {
         system: Some(SystemConfig {
             code: WASM_BINARY.to_vec(),
@@ -145,8 +198,21 @@ fn testnet_genesis(
             _auctions: auction_initiators
                 .iter()
                 .cloned()
-                // Timestamp, Cargo0, Cargo1
-                .map(|x| (x.0, x.1, vec![1592839917, 200, 200], 0, 50))
+                .map(|x| {
+                    // Make sure that the number of test_auctions == the number of test auction
+                    // initiators container in auction_initiators. 
+                    if let Some(current_auction) = test_auctions.pop() {
+                        (
+                            x.0,
+                            x.1,
+                            vec![current_auction.0, current_auction.1, current_auction.2],
+                            current_auction.3,
+                            current_auction.4,
+                        )
+                    } else {
+                        (x.0, x.1, vec![2000, 200, 200], 0, 500)
+                    }
+                })
                 .collect::<Vec<(
                     AccountId,
                     AccountId,
