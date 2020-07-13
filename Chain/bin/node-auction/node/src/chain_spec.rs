@@ -1,8 +1,7 @@
-use auction_traits::auction::*;
 use node_auction_runtime::{
-    AccountId, AuctionId, AuctionModuleConfig, AuraConfig, Balance, BalancesConfig, BlockNumber,
-    Currency, GeneralInformationContainer, GenesisConfig, GrandpaConfig, Signature, SudoConfig,
-    SystemConfig, WASM_BINARY,
+    AccountId, AuctionModuleConfig, AuraConfig, BalancesConfig, BlockNumber,
+    GeneralInformationContainer, GenesisConfig, GrandpaConfig, Signature, SudoConfig, SystemConfig,
+    WASM_BINARY,
 };
 use sc_service::ChainType;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
@@ -151,7 +150,7 @@ fn testnet_genesis(
                 .collect::<Vec<(
                     AccountId,
                     AccountId,
-                    Vec<(GeneralInformationContainer)>,
+                    Vec<GeneralInformationContainer>,
                     BlockNumber,
                     BlockNumber,
                 )>>(),

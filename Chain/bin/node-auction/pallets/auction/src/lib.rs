@@ -20,6 +20,9 @@ use frame_support::{
     IterableStorageDoubleMap, IterableStorageMap,
 };
 
+// --TEMP--Hamza-- Vector definition comes from here; required!
+use frame_support::inherent::*;
+
 #[allow(unused_imports)]
 use frame_system::{self as system, ensure_signed};
 
@@ -31,7 +34,8 @@ use auction_traits::auction::*;
 #[cfg(test)]
 mod tests;
 
-type BalanceOf<T> = <<T as Trait>::Currency as Currency<<T as system::Trait>::AccountId>>::Balance;
+pub type BalanceOf<T> = <<T as Trait>::Currency as Currency<<T as system::Trait>::AccountId>>::Balance;
+pub type Hamza = u128;
 
 /// The pallet's configuration trait.
 pub trait Trait: system::Trait + Sized {
@@ -221,9 +225,30 @@ decl_module! {
             Ok(())
         }
 
-        fn on_initialize(now: T::BlockNumber) -> Weight {
-            Self::_on_initialize(now);
+        #[weight = 10_000]
+        pub fn ext_dummy(og, cargo: u128) -> DispatchResult {
+            let origin = ensure_signed(og)?;
+            sp_runtime::print("We the ext dummy");
 
+            Ok(())
+        }
+
+        #[weight = 10_000]
+        pub fn hamza_dummy(og, cargo: Hamza) -> DispatchResult {
+            let origin = ensure_signed(og)?;
+            sp_runtime::print("We the best");
+
+            Ok(())
+        }
+
+        fn on_initialize(now: T::BlockNumber) -> Weight {
+            // Logging for the runtime, for testin purposes only
+            frame_support::print("HAMZA -- ##################################################");
+            frame_support::print("--ACTIVE-- Autioning Pallet.");
+            frame_support::print("HAMZA -- ##################################################");
+
+            Self::_on_initialize(now);
+            
             0
         }
 
@@ -313,8 +338,8 @@ impl<T: Trait> Module<T> {
     {
         // For debug purposes -- begin
         for i in <Auctions<T>>::iter() {
-            println!("======");
-            println!("{:#?}", i);
+            //println!("======");
+            //println!("{:#?}", i);
         }
         // For debug purposes -- end
 
@@ -329,8 +354,8 @@ impl<T: Trait> Module<T> {
         for i in
             <Auctions<T>>::iter().filter(|x| x.1.start >= <frame_system::Module<T>>::block_number())
         {
-            println!("======Inactive======");
-            println!("{:#?}", i);
+            //println!("======Inactive======");
+            //println!("{:#?}", i);
         }
         // For debug purposes -- end
 
@@ -491,6 +516,13 @@ impl<T: Trait> Module<T> {
                 //println!("Something went wrong");
             }
         }
+    }
+
+    // For testing purposes only, displays the type's underlying, core type.
+    // This 100% causes an error. 
+    fn type_disc(t: T::GeneralInformationContainer, b: T::AuctionId) {
+        //let _t : () = t;
+        //let _b : () = b;
     }
 }
 
