@@ -30,6 +30,14 @@ pub struct AuctionCoreInfo<GeneralInformationContainer> {
     pub cargo: (GeneralInformationContainer, GeneralInformationContainer),
 }
 
+#[cfg_attr(feature = "std", derive(PartialEq, Eq))]
+#[derive(Clone, Copy, RuntimeDebug, Default)]
+pub struct AuctionUpdateInfo<GeneralInformationContainer> {
+    pub timestamp: Option<GeneralInformationContainer>,
+    pub num_con: Option<GeneralInformationContainer>,
+    pub num_teu: Option<GeneralInformationContainer>,
+}
+
 /// Auction information. The creator of the auction is always the barge. Upon creating the auction,
 /// the barge also states which terminal this auctioned off slot belongs to. This can later be
 /// expanded into verification of slot ownership etc.
@@ -62,7 +70,7 @@ pub struct UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationCont
     pub slot_time: GeneralInformationContainer,
     /// Maximum number of containers allowed during this slot
     pub slot_num_cargo: GeneralInformationContainer,
-    /// Maximum number of containers in TEU allowed during this slot 
+    /// Maximum number of containers in TEU allowed during this slot
     pub slot_num_teu: GeneralInformationContainer,
     /// True == Live Auction | False == Queued Action
     pub auction_is_live: bool,
@@ -73,7 +81,7 @@ pub struct UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationCont
 }
 
 /// Abstraction over a simple auction system.
-pub trait Auction<AccountId, BlockNumber, GeneralInformationContainer> {
+pub trait Auction<AccountId, BlockNumber, GeneralInformationContainer, ErrorTypes> {
     /// The id of an AuctionInfo
     type AuctionId: FullCodec + Default + Copy + Eq + PartialEq + MaybeSerializeDeserialize + Debug;
     /// The price to bid.
@@ -86,8 +94,11 @@ pub trait Auction<AccountId, BlockNumber, GeneralInformationContainer> {
     /// Update the auction info of `id` with `info`
     fn update_auction(
         id: Self::AuctionId,
-        info: AuctionInfo<AccountId, Self::Balance, BlockNumber, GeneralInformationContainer>,
-    ) -> DispatchResult;
+        origin: AccountId,
+        core_info: AuctionUpdateInfo<GeneralInformationContainer>,
+        start: Option<BlockNumber>,
+        end: Option<BlockNumber>,
+    ) -> Result<(), ErrorTypes>;
     /// Create new auction with specific startblock and endblock, return the id of the auction
     fn new_auction(
         barge: AccountId,
@@ -97,7 +108,7 @@ pub trait Auction<AccountId, BlockNumber, GeneralInformationContainer> {
         end: Option<BlockNumber>,
     ) -> Self::AuctionId;
     /// Remove auction by `id`
-    fn remove_auction(id: Self::AuctionId);
+    fn remove_auction(id: Self::AuctionId, origin: AccountId) -> Result<(), ErrorTypes>;
 }
 
 /// The result of bid handling.

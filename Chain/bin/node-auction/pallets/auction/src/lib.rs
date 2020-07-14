@@ -9,7 +9,7 @@ use frame_support::{
     dispatch::Parameter,
     ensure,
     sp_runtime::{
-        traits::{AtLeast32Bit, MaybeSerializeDeserialize, Member, One, Zero},
+        traits::{AtLeast32Bit, MaybeSerializeDeserialize, Member, One, Printable, Zero},
         DispatchError, DispatchResult,
     },
     traits::{
@@ -34,7 +34,8 @@ use auction_traits::auction::*;
 #[cfg(test)]
 mod tests;
 
-pub type BalanceOf<T> = <<T as Trait>::Currency as Currency<<T as system::Trait>::AccountId>>::Balance;
+pub type BalanceOf<T> =
+    <<T as Trait>::Currency as Currency<<T as system::Trait>::AccountId>>::Balance;
 pub type Hamza = u128;
 
 /// The pallet's configuration trait.
@@ -42,7 +43,13 @@ pub trait Trait: system::Trait + Sized {
     /// The overarching event type.
     type Event: From<Event<Self>> + Into<<Self as system::Trait>::Event>;
     type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
-    type AuctionId: Parameter + Member + AtLeast32Bit + Default + Copy + MaybeSerializeDeserialize;
+    type AuctionId: Parameter
+        + Member
+        + AtLeast32Bit
+        + Default
+        + Copy
+        + MaybeSerializeDeserialize
+        + Printable;
     type GeneralInformationContainer: Parameter
         + Member
         + AtLeast32Bit
@@ -130,6 +137,8 @@ decl_error! {
         AuctionNotStarted,
         BidNotAccepted,
         InvalidBidPrice,
+
+        PermissionError,
 
         TryReserve,
         AmbitiousReserve,
@@ -226,17 +235,68 @@ decl_module! {
         }
 
         #[weight = 10_000]
-        pub fn ext_dummy(og, cargo: u128) -> DispatchResult {
-            let origin = ensure_signed(og)?;
-            sp_runtime::print("We the ext dummy");
+        pub fn ext_update_auction(origin,
+            id: T::AuctionId,
+            time: Option<T::GeneralInformationContainer>,
+            num_con: Option<T::GeneralInformationContainer>,
+            num_teu: Option<T::GeneralInformationContainer>,
+            start: Option<T::BlockNumber>,
+            end: Option<T::BlockNumber>
+        ) -> DispatchResult {
+            let initiator = ensure_signed(origin)?;
+            <Module<T>>::update_auction(
+                id,
+                initiator,
+                AuctionUpdateInfo {
+                    timestamp: time,
+                    num_con: num_con,
+                    num_teu: num_teu,
+                },
+                start,
+                end);
+
+        Ok(())
+    }
+
+       #[weight = 10_000]
+       pub fn ext_new_auction(
+           origin,
+           _terminal: T::AccountId,
+           _num_con: T::GeneralInformationContainer,
+           _num_teu: T::GeneralInformationContainer,
+           _timestamp: T::GeneralInformationContainer,
+           _start: T::BlockNumber,
+           _end: T::BlockNumber,
+       ) -> DispatchResult {
+           let initiator = ensure_signed(origin)?;
+           let new_auction_id = <Module<T>>::new_auction(
+               initiator,
+               _terminal,
+               AuctionCoreInfo {
+                   timestamp: _timestamp,
+                   cargo: (_num_con, _num_teu)
+               },
+               _start,
+               Some(_end));
+
+            frame_support::print("EXT -- NEW AUCTION -- ID : ");
+            frame_support::print(new_auction_id);
+
+            Ok(())
+       }
+
+        #[weight = 10_000]
+        pub fn ext_remove_auction(origin, id: T::AuctionId) -> DispatchResult {
+            let initiator = ensure_signed(origin)?;
+            <Module<T>>::remove_auction(id, initiator);
 
             Ok(())
         }
 
         #[weight = 10_000]
-        pub fn hamza_dummy(og, cargo: Hamza) -> DispatchResult {
+        pub fn ext__dummy(og, cargo: Hamza) -> DispatchResult {
             let origin = ensure_signed(og)?;
-            sp_runtime::print("We the best");
+            sp_runtime::print("EXT -- DUMMY -- --");
 
             Ok(())
         }
@@ -248,7 +308,7 @@ decl_module! {
             frame_support::print("HAMZA -- ##################################################");
 
             Self::_on_initialize(now);
-            
+
             0
         }
 
@@ -519,14 +579,16 @@ impl<T: Trait> Module<T> {
     }
 
     // For testing purposes only, displays the type's underlying, core type.
-    // This 100% causes an error. 
+    // This 100% causes an error.
     fn type_disc(t: T::GeneralInformationContainer, b: T::AuctionId) {
         //let _t : () = t;
         //let _b : () = b;
     }
 }
 
-impl<T: Trait> Auction<T::AccountId, T::BlockNumber, T::GeneralInformationContainer> for Module<T> {
+impl<T: Trait> Auction<T::AccountId, T::BlockNumber, T::GeneralInformationContainer, Error<T>>
+    for Module<T>
+{
     type AuctionId = T::AuctionId;
     type Balance = BalanceOf<T>;
 
@@ -540,25 +602,38 @@ impl<T: Trait> Auction<T::AccountId, T::BlockNumber, T::GeneralInformationContai
 
     fn update_auction(
         id: Self::AuctionId,
-        info: AuctionInfo<
-            T::AccountId,
-            Self::Balance,
-            T::BlockNumber,
-            T::GeneralInformationContainer,
-        >,
-    ) -> DispatchResult {
-        let auction = <Auctions<T>>::get(id).ok_or(Error::<T>::AuctionNotExist)?;
+        origin: T::AccountId,
+        core_info: AuctionUpdateInfo<T::GeneralInformationContainer>,
+        start: Option<T::BlockNumber>,
+        end: Option<T::BlockNumber>,
+    ) -> Result<(), Error<T>> {
+        // Ensure auction exists and make it mutable for our adjustments
+        let mut auction = <Auctions<T>>::get(id).ok_or(Error::<T>::AuctionNotExist)?;
+        // Ensure that origin is the owner of the auction
+        ensure!(auction.creator == origin, <Error<T>>::PermissionError);
 
-        if let Some(old_end) = auction.end {
-            <AuctionEndTime<T>>::remove(&old_end, id);
-        }
-
-        if let Some(new_end) = info.end {
+        // Replace auction's end-time if specified by the origin
+        if let Some(new_end) = end {
+            if let Some(old_end) = auction.end {
+                <AuctionEndTime<T>>::remove(&old_end, id);
+            }
             <AuctionEndTime<T>>::insert(&new_end, id, true);
+            auction.end = Some(new_end.clone());
         }
-        //println!("UPDATING auction");
-        <Auctions<T>>::insert(id, info);
 
+        // Replace auction's data if specified by the origin
+        // Option<timestamp> -> Option<num_con> -> Option<num_teu>
+        if let Some(timestamp) = core_info.timestamp {
+            auction.core.timestamp = timestamp;
+        }
+        if let Some(num_con) = core_info.num_con {
+            auction.core.cargo.0 = num_con;
+        }
+        if let Some(num_teu) = core_info.num_teu {
+            auction.core.cargo.1 = num_teu;
+        }
+
+        <Auctions<T>>::insert(id, auction);
         Ok(())
     }
 
@@ -587,11 +662,16 @@ impl<T: Trait> Auction<T::AccountId, T::BlockNumber, T::GeneralInformationContai
         auction_id
     }
 
-    fn remove_auction(id: Self::AuctionId) {
+    fn remove_auction(id: Self::AuctionId, origin: T::AccountId) -> Result<(), Error<T>> {
+        //TODO(HAMZA):: When placing our ensure within if let, we get an error stating that T, our
+        //generic type for our error can't be sent safely across threads, inspect this.
+        let _auction = <Auctions<T>>::get(id).ok_or(Error::<T>::AuctionNotExist)?;
+        ensure!(_auction.creator == origin, <Error<T>>::PermissionError);
         if let Some(auction) = <Auctions<T>>::take(&id) {
             if let Some(end_block) = auction.end {
                 <AuctionEndTime<T>>::remove(&end_block, id);
             }
         }
+        Ok(())
     }
 }
