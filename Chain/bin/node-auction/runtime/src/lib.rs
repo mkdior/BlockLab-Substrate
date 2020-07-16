@@ -48,7 +48,7 @@ use auction_traits::auction::*;
 pub use auction;
 
 /// And index to an auction
-pub type AuctionId = u128;
+pub type AuctionId = u64;
 
 /// Generic container information datatype, this is used because using regular types doesn't work
 /// in conjunction with custom structs.

@@ -36,7 +36,14 @@ mod tests;
 
 pub type BalanceOf<T> =
     <<T as Trait>::Currency as Currency<<T as system::Trait>::AccountId>>::Balance;
-pub type Hamza = u128;
+/// AuctionInfo condensed down to a single type parameter.
+pub type InfoCond<T> = AuctionInfo<
+    <T as system::Trait>::AccountId,
+    BalanceOf<T>,
+    <T as system::Trait>::BlockNumber,
+    <T as Trait>::GeneralInformationContainer,
+>;
+pub type Dummy = u64;
 
 /// The pallet's configuration trait.
 pub trait Trait: system::Trait + Sized {
@@ -107,6 +114,7 @@ decl_event!(
         Balance = BalanceOf<T>,
         BlockNumber = <T as system::Trait>::BlockNumber,
         AuctionId = <T as Trait>::AuctionId,
+        Auction = InfoCond<T>,
     {
         // Currency Events
         // Called when funds are reserved (e.g. when placing a bid)
@@ -115,6 +123,7 @@ decl_event!(
         UnlockFunds(AccountId, Balance, BlockNumber),
         // Called when transfering released funds.
         TransferFunds(AccountId, AccountId, Balance, BlockNumber),
+
         // Auction Events
         // Called when a bid is placed.
         Bid(AuctionId, AccountId, Balance),
@@ -126,6 +135,12 @@ decl_event!(
         AuctionEndDecided(AccountId, AuctionId),
         // Called when an auction ends with 0 bids.
         AuctionEndUndecided(AuctionId),
+        // Called when a new auction is created.
+        AuctionCreated(AuctionId, Auction),
+        // Called when an existing auction is updated.
+        AuctionUpdated(AuctionUpdateComplete<Auction>),
+        // Called when an existing auction is deleted.
+        AuctionDeleted(Auction),
         // Other Events
         DummyEvent(),
     }
@@ -144,6 +159,7 @@ decl_error! {
         AmbitiousReserve,
         AmbitiousUnreserve,
         AmbitiousTransfer,
+
         Unexplained,
     }
 }
@@ -244,7 +260,7 @@ decl_module! {
             end: Option<T::BlockNumber>
         ) -> DispatchResult {
             let initiator = ensure_signed(origin)?;
-            <Module<T>>::update_auction(
+            let event_info = <Module<T>>::update_auction(
                 id,
                 initiator,
                 AuctionUpdateInfo {
@@ -254,33 +270,33 @@ decl_module! {
                 },
                 start,
                 end);
-
-        Ok(())
+            if let Ok(info) = event_info {
+                Self::deposit_event(RawEvent::AuctionUpdated(info));
+            }
+            Ok(())
     }
 
        #[weight = 10_000]
        pub fn ext_new_auction(
            origin,
-           _terminal: T::AccountId,
-           _num_con: T::GeneralInformationContainer,
-           _num_teu: T::GeneralInformationContainer,
-           _timestamp: T::GeneralInformationContainer,
-           _start: T::BlockNumber,
-           _end: T::BlockNumber,
+           terminal: T::AccountId,
+           num_con: T::GeneralInformationContainer,
+           num_teu: T::GeneralInformationContainer,
+           timestamp: T::GeneralInformationContainer,
+           start: T::BlockNumber,
+           end: T::BlockNumber,
        ) -> DispatchResult {
            let initiator = ensure_signed(origin)?;
-           let new_auction_id = <Module<T>>::new_auction(
+           let (auction_id, auction) = <Module<T>>::new_auction(
                initiator,
-               _terminal,
+               terminal,
                AuctionCoreInfo {
-                   timestamp: _timestamp,
-                   cargo: (_num_con, _num_teu)
+                   timestamp: timestamp,
+                   cargo: (num_con, num_teu)
                },
-               _start,
-               Some(_end));
-
-            frame_support::print("EXT -- NEW AUCTION -- ID : ");
-            frame_support::print(new_auction_id);
+               start,
+               Some(end));
+            Self::deposit_event(RawEvent::AuctionCreated(auction_id, auction));
 
             Ok(())
        }
@@ -288,13 +304,18 @@ decl_module! {
         #[weight = 10_000]
         pub fn ext_remove_auction(origin, id: T::AuctionId) -> DispatchResult {
             let initiator = ensure_signed(origin)?;
-            <Module<T>>::remove_auction(id, initiator);
+            let remove_auction = <Module<T>>::remove_auction(id, initiator);
 
+            if let Ok(inner) = remove_auction {
+                if let Some(auction) = inner {
+                    Self::deposit_event(RawEvent::AuctionDeleted(auction));
+                }
+            }
             Ok(())
         }
 
         #[weight = 10_000]
-        pub fn ext__dummy(og, cargo: Hamza) -> DispatchResult {
+        pub fn ext_dummy(og, cargo: Dummy) -> DispatchResult {
             let origin = ensure_signed(og)?;
             sp_runtime::print("EXT -- DUMMY -- --");
 
@@ -606,11 +627,12 @@ impl<T: Trait> Auction<T::AccountId, T::BlockNumber, T::GeneralInformationContai
         core_info: AuctionUpdateInfo<T::GeneralInformationContainer>,
         start: Option<T::BlockNumber>,
         end: Option<T::BlockNumber>,
-    ) -> Result<(), Error<T>> {
+    ) -> Result<AuctionUpdateComplete<InfoCond<T>>, Error<T>> {
         // Ensure auction exists and make it mutable for our adjustments
         let mut auction = <Auctions<T>>::get(id).ok_or(Error::<T>::AuctionNotExist)?;
         // Ensure that origin is the owner of the auction
         ensure!(auction.creator == origin, <Error<T>>::PermissionError);
+        let auction_original = auction.clone();
 
         // Replace auction's end-time if specified by the origin
         if let Some(new_end) = end {
@@ -633,8 +655,12 @@ impl<T: Trait> Auction<T::AccountId, T::BlockNumber, T::GeneralInformationContai
             auction.core.cargo.1 = num_teu;
         }
 
+        let auction_updated = auction.clone();
         <Auctions<T>>::insert(id, auction);
-        Ok(())
+        Ok(AuctionUpdateComplete {
+            old: auction_original,
+            new: auction_updated,
+        })
     }
 
     fn new_auction(
@@ -643,7 +669,7 @@ impl<T: Trait> Auction<T::AccountId, T::BlockNumber, T::GeneralInformationContai
         core_info: AuctionCoreInfo<T::GeneralInformationContainer>,
         start: T::BlockNumber,
         end: Option<T::BlockNumber>,
-    ) -> Self::AuctionId {
+    ) -> (T::AuctionId, InfoCond<T>) {
         let auction = AuctionInfo {
             creator: barge,
             slot_origin: terminal,
@@ -654,24 +680,36 @@ impl<T: Trait> Auction<T::AccountId, T::BlockNumber, T::GeneralInformationContai
         };
         let auction_id = Self::auctions_index();
         <AuctionsIndex<T>>::mutate(|n| *n += Self::AuctionId::one());
-        <Auctions<T>>::insert(auction_id, auction);
+        let new_auction_info = (auction_id, auction);
+        <Auctions<T>>::insert(new_auction_info.0, new_auction_info.1.clone());
         if let Some(end_block) = end {
             <AuctionEndTime<T>>::insert(&end_block, auction_id, true);
         }
 
-        auction_id
+        new_auction_info
     }
 
-    fn remove_auction(id: Self::AuctionId, origin: T::AccountId) -> Result<(), Error<T>> {
+    fn remove_auction(
+        id: Self::AuctionId,
+        origin: T::AccountId,
+    ) -> Result<Option<InfoCond<T>>, Error<T>> {
         //TODO(HAMZA):: When placing our ensure within if let, we get an error stating that T, our
         //generic type for our error can't be sent safely across threads, inspect this.
         let _auction = <Auctions<T>>::get(id).ok_or(Error::<T>::AuctionNotExist)?;
+        let _auction_inner: Option<InfoCond<T>>;
         ensure!(_auction.creator == origin, <Error<T>>::PermissionError);
         if let Some(auction) = <Auctions<T>>::take(&id) {
+            _auction_inner = Some(auction.clone());
             if let Some(end_block) = auction.end {
                 <AuctionEndTime<T>>::remove(&end_block, id);
             }
+        } else {
+            _auction_inner = None;
         }
-        Ok(())
+        // Using option because returning not as an Option causes an error which would result in
+        // much more bloat-code. Also because I have no idea how to instantiate a
+        // GeneralInformationContainer type from nothing, it can't do conversions for some reason
+        // even though it should be able to, look into it TODO(Hamza).
+        Ok(_auction_inner)
     }
 }

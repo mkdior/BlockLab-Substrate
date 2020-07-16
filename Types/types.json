@@ -1,11 +1,11 @@
 {
   "Address": "AccountId",
   "LookupSource": "AccountId",
-  "AuctionId": "u128",
+  "AuctionId": "u64",
   "Balance": "u128",
   "BalanceOf": "Balance",
   "GeneralInformationContainer": "u64",
-  "Hamza": "u128",
+  "Dummy": "u64",
   "Currency": "Balance",
   "BlockNumber": "u32",
   "Hash": "H256",

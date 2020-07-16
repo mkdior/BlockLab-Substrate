@@ -30,6 +30,19 @@ pub struct AuctionCoreInfo<GeneralInformationContainer> {
     pub cargo: (GeneralInformationContainer, GeneralInformationContainer),
 }
 
+/// This struct is used for the AuctionUpdated event, shows the old AuctionInfo
+/// and the new AuctionInfo.
+#[cfg_attr(feature = "std", derive(PartialEq, Eq))]
+#[derive(Clone, Copy, RuntimeDebug, Encode, Decode)]
+pub struct AuctionUpdateComplete<A> {
+    pub old: A,
+    pub new: A,
+}
+
+/// This struct serves to be convenient for the end-user and for the developer working
+/// on updating the auctions. When initiating an update, the end-user will be able to
+/// see the field names, which is a nice indicator which shows exactly what is being
+/// updated.
 #[cfg_attr(feature = "std", derive(PartialEq, Eq))]
 #[derive(Clone, Copy, RuntimeDebug, Default)]
 pub struct AuctionUpdateInfo<GeneralInformationContainer> {
@@ -98,7 +111,12 @@ pub trait Auction<AccountId, BlockNumber, GeneralInformationContainer, ErrorType
         core_info: AuctionUpdateInfo<GeneralInformationContainer>,
         start: Option<BlockNumber>,
         end: Option<BlockNumber>,
-    ) -> Result<(), ErrorTypes>;
+    ) -> Result<
+        AuctionUpdateComplete<
+            AuctionInfo<AccountId, Self::Balance, BlockNumber, GeneralInformationContainer>,
+        >,
+        ErrorTypes,
+    >;
     /// Create new auction with specific startblock and endblock, return the id of the auction
     fn new_auction(
         barge: AccountId,
@@ -106,9 +124,18 @@ pub trait Auction<AccountId, BlockNumber, GeneralInformationContainer, ErrorType
         core_info: AuctionCoreInfo<GeneralInformationContainer>,
         start: BlockNumber,
         end: Option<BlockNumber>,
-    ) -> Self::AuctionId;
+    ) -> (
+        Self::AuctionId,
+        AuctionInfo<AccountId, Self::Balance, BlockNumber, GeneralInformationContainer>,
+    );
     /// Remove auction by `id`
-    fn remove_auction(id: Self::AuctionId, origin: AccountId) -> Result<(), ErrorTypes>;
+    fn remove_auction(
+        id: Self::AuctionId,
+        origin: AccountId,
+    ) -> Result<
+        Option<AuctionInfo<AccountId, Self::Balance, BlockNumber, GeneralInformationContainer>>,
+        ErrorTypes,
+    >;
 }
 
 /// The result of bid handling.
