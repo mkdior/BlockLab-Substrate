@@ -90,7 +90,7 @@ decl_storage! {
                      T::BlockNumber)>;
 
             build(|config: &GenesisConfig<T>| {
-                for (barge, terminal, core_info, start, end) in &config._auctions {
+                for (barge, terminal, _core_info, start, end) in &config._auctions {
                     assert!(
                         *end > *start,
                         "Ending block has to be greater than the starting block",
@@ -185,9 +185,9 @@ decl_module! {
                 // searching just through a block_number isn't that bad, perhaps try and actually
                 // have the auction ID's exposed through a double map, this way we can search
                 // focusing just on the auction ID, which saves us a loop.
-                for (bnum, qbid) in <QueuedBids<T>>::iter() {
+                //for (bnum, qbid) in <QueuedBids<T>>::iter() {
                     //println!("Queued bid under block number: {} :: {:#?}", bnum, qbid);
-                }
+                //}
 
                 // Assemble our queued bid.
                 let queued_bid = QueuedBid {
@@ -200,7 +200,12 @@ decl_module! {
                 // Currently bids are queued regardless of the iniatiator's balance. This enables
                 // bidders to cancel each-other's bids out by bidding something higher than the
                 // other. To stop this from happening, we reserve some of the balance now.
-                Self::reserve_funds(&queued_bid.bid.0, queued_bid.bid.1);
+                let reserve_result = Self::reserve_funds(&queued_bid.bid.0, queued_bid.bid.1);
+
+                if let Err(_) = reserve_result {
+                    // Funds couldn't be reserved.
+                    <++>
+                }
                 // Note that the reserved balance isn't an exlusive pool of funds, other methods in
                 // this runtime can pull from it. Perhaps something else is needed to make sure
                 // that the unreserving funds are always successful.
@@ -221,7 +226,7 @@ decl_module! {
 
             // Bid was accepted, time to refund the previous bidder.
             if let Some((a,b)) = &auction.bid {
-                let (previous_bidder,previous_bid) = &auction.bid.unwrap();
+                let (previous_bidder,previous_bid) = (a, b);
                 let unreserve_result = Self::unreserve_funds(previous_bidder, *previous_bid);
                 if let Err(_) = unreserve_result {
                     // Funds couldn't be unreserved
@@ -328,8 +333,9 @@ decl_module! {
         #[weight = 10_000]
         pub fn ext_dummy(og, cargo: Dummy) -> DispatchResult {
             let origin = ensure_signed(og)?;
-            sp_runtime::print("EXT -- DUMMY -- --");
-
+            sp_runtime::print("EXT -- DUMMY --");
+            sp_runtime::print(origin);
+            sp_runtime::print("EXT ## DUMMY ##");
             Ok(())
         }
 
@@ -411,6 +417,7 @@ impl<T: Trait> Module<T> {
         Ok(())
     }
 
+    #[allow(dead_code)]
     fn auction_exists(id: T::AuctionId) -> bool {
         <Auctions<T>>::contains_key(id)
     }
@@ -423,13 +430,14 @@ impl<T: Trait> Module<T> {
         AuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber, T::GeneralInformationContainer>,
         Error<T>,
     > {
-        let mut auction = <Auctions<T>>::get(id).ok_or(<Error<T>>::AuctionNotExist)?;
+        let auction = <Auctions<T>>::get(id).ok_or(<Error<T>>::AuctionNotExist)?;
 
         Ok(auction)
     }
 
     /// Returns a vector of all currently stored auctions regardless of the auction's activity
     /// status. Returns everything in its original form.
+    #[allow(dead_code)]
     fn auction_all_query_informal(
     ) -> Vec<AuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber, T::GeneralInformationContainer>>
     {
@@ -443,8 +451,9 @@ impl<T: Trait> Module<T> {
         <Auctions<T>>::iter().map(|x| x.1).collect::<Vec<_>>()
     }
 
+    #[allow(dead_code)]
     fn auction_all_query_informal_status(
-        is_active: bool,
+        _is_active: bool,
     ) -> Vec<AuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber, T::GeneralInformationContainer>>
     {
         // For debug purposes -- begin
@@ -465,13 +474,14 @@ impl<T: Trait> Module<T> {
             .collect::<Vec<_>>()
     }
 
+    #[allow(dead_code)]
     fn auction_query_formal(
         id: T::AuctionId,
     ) -> Result<
         UIAuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber, T::GeneralInformationContainer>,
         Error<T>,
     > {
-        let mut auction = <Auctions<T>>::get(id).ok_or(<Error<T>>::AuctionNotExist)?;
+        let auction = <Auctions<T>>::get(id).ok_or(<Error<T>>::AuctionNotExist)?;
 
         Ok(UIAuctionInfo {
             slot_owner: auction.creator,
@@ -485,6 +495,7 @@ impl<T: Trait> Module<T> {
         })
     }
 
+    #[allow(dead_code)]
     fn auction_all_query_formal() -> Vec<
         UIAuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber, T::GeneralInformationContainer>,
     > {
@@ -502,6 +513,7 @@ impl<T: Trait> Module<T> {
             .collect::<Vec<_>>()
     }
 
+    #[allow(dead_code)]
     fn auction_all_query_formal_status(
         is_active: bool,
     ) -> Vec<
@@ -620,9 +632,10 @@ impl<T: Trait> Module<T> {
         }
     }
 
-    // For testing purposes only, displays the type's underlying, core type.
-    // This 100% causes an error.
-    fn type_disc(t: T::GeneralInformationContainer, b: T::AuctionId) {
+    // For testing purposes only, displays the type's underlying, core type by causing an error.
+    // This function works as intended!.
+    #[allow(dead_code)]
+    fn type_disc(_t: T::GeneralInformationContainer, _b: T::AuctionId) {
         //let _t : () = t;
         //let _b : () = b;
     }
@@ -646,7 +659,9 @@ impl<T: Trait> Auction<T::AccountId, T::BlockNumber, T::GeneralInformationContai
         id: Self::AuctionId,
         origin: T::AccountId,
         core_info: AuctionUpdateInfo<T::GeneralInformationContainer>,
-        start: Option<T::BlockNumber>,
+        // TODO(HAMZA):: If current block < than start block,
+        // enable the user to change the start date.
+        _start: Option<T::BlockNumber>,
         end: Option<T::BlockNumber>,
     ) -> Result<AuctionUpdateComplete<InfoCond<T>>, Error<T>> {
         // Ensure auction exists and make it mutable for our adjustments
