@@ -204,7 +204,7 @@ decl_module! {
 
                 if let Err(_) = reserve_result {
                     // Funds couldn't be reserved.
-                    <++>
+                    sp_runtime::print("ERROR -- BID(QUEUED) >> RESERVE_FUNDS");
                 }
                 // Note that the reserved balance isn't an exlusive pool of funds, other methods in
                 // this runtime can pull from it. Perhaps something else is needed to make sure
@@ -230,7 +230,7 @@ decl_module! {
                 let unreserve_result = Self::unreserve_funds(previous_bidder, *previous_bid);
                 if let Err(_) = unreserve_result {
                     // Funds couldn't be unreserved
-                    <++>
+                    sp_runtime::print("ERROR -- MODULE >> UNRESERVE_FUNDS >> RESERVE");
                 }
             } else {
                 // If needed, add additional handling here for when there's no previous bid.
@@ -251,12 +251,12 @@ decl_module! {
 
             // Reserve auction funds
             let reserve_result = Self::reserve_funds(&bidder, value);
-            
+
             if let Err(_) = reserve_result {
                 // Funds couldn't be reserved
-                <++>
+                sp_runtime::print("ERROR -- MODULE >> RESERVE_FUNDS >> RESERVE");
             }
-            
+
             // Update auction bid
             auction.bid = Some((bidder.clone(), value));
             <Auctions<T>>::insert(id, auction);
@@ -332,9 +332,8 @@ decl_module! {
 
         #[weight = 10_000]
         pub fn ext_dummy(og, cargo: Dummy) -> DispatchResult {
-            let origin = ensure_signed(og)?;
+            let _origin = ensure_signed(og)?;
             sp_runtime::print("EXT -- DUMMY --");
-            sp_runtime::print(origin);
             sp_runtime::print("EXT ## DUMMY ##");
             Ok(())
         }
@@ -362,7 +361,7 @@ impl<T: Trait> Module<T> {
     pub fn reserve_funds(target: &T::AccountId, amount: BalanceOf<T>) -> DispatchResult {
         //TODO(Hamza): Serve proper errors. Also perhaps implement Currency for our local trait
         // to avoid the use of Currency::X
-        let now = <system::Module<T>>::block_number();
+        let _now = <system::Module<T>>::block_number();
         // Make sure that the amount to be reserved isn't higher than the actual balance of the
         // user trying to bid on the auction.
         ensure!(
@@ -381,14 +380,14 @@ impl<T: Trait> Module<T> {
 
         if let Err(_) = reserve_result {
             // Even thought ensure_can_withdraw passed, something went wrong during reserve.
-            <++>
+            sp_runtime::print("ERROR -- MODULE >> RESERVE_FUNDS >> RESERVE");
         }
 
         Ok(())
     }
 
     pub fn unreserve_funds(target: &T::AccountId, amount: BalanceOf<T>) -> DispatchResult {
-        let now = <system::Module<T>>::block_number();
+        let _now = <system::Module<T>>::block_number();
         T::Currency::unreserve(&target, amount);
 
         Ok(())
@@ -412,7 +411,7 @@ impl<T: Trait> Module<T> {
         // it'll fail regardless, in a more elgant manner.
         T::Currency::transfer(from, to, amount - overdraft, AllowDeath)?;
 
-        let now = <system::Module<T>>::block_number();
+        let _now = <system::Module<T>>::block_number();
 
         Ok(())
     }
@@ -424,6 +423,7 @@ impl<T: Trait> Module<T> {
 
     /// Returns an auction in its original form. Original means the format it's actually stored in the
     /// database.
+    #[allow(dead_code)]
     fn auction_query_informal(
         id: T::AuctionId,
     ) -> Result<
@@ -442,10 +442,10 @@ impl<T: Trait> Module<T> {
     ) -> Vec<AuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber, T::GeneralInformationContainer>>
     {
         // For debug purposes -- begin
-        for i in <Auctions<T>>::iter() {
-            //println!("======");
-            //println!("{:#?}", i);
-        }
+        //for i in <Auctions<T>>::iter() {
+        //println!("======");
+        //println!("{:#?}", i);
+        //}
         // For debug purposes -- end
 
         <Auctions<T>>::iter().map(|x| x.1).collect::<Vec<_>>()
@@ -457,12 +457,11 @@ impl<T: Trait> Module<T> {
     ) -> Vec<AuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber, T::GeneralInformationContainer>>
     {
         // For debug purposes -- begin
-        for i in
-            <Auctions<T>>::iter().filter(|x| x.1.start >= <frame_system::Module<T>>::block_number())
-        {
-            //println!("======Inactive======");
-            //println!("{:#?}", i);
-        }
+        //for i in <Auctions<T>>::iter().filter(|x| x.1.start >= <frame_system::Module<T>>::block_number())
+        //{
+        //println!("======Inactive======");
+        //println!("{:#?}", i);
+        //}
         // For debug purposes -- end
 
         <Auctions<T>>::iter()
@@ -604,7 +603,7 @@ impl<T: Trait> Module<T> {
 
             if let Err(_) = pq_result {
                 // Something went wrong placing the queued bid, for now throw an event + log
-                <++>
+                sp_runtime::print("ERROR -- _ON_INITIALIZE>>PLACE_QUEUED_BID ");
             }
         }
     }
