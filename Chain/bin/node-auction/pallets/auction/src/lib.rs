@@ -138,7 +138,8 @@ decl_event!(
         // Called when a new auction is created.
         AuctionCreated(AuctionId, Auction),
         // Called when an existing auction is updated.
-        AuctionUpdated(AuctionUpdateComplete<Auction>),
+        //                old      new
+        AuctionUpdated(Auction, Auction),
         // Called when an existing auction is deleted.
         AuctionDeleted(Auction),
         // Other Events
@@ -171,7 +172,7 @@ decl_module! {
         fn deposit_event() = default;
 
         #[weight = 10_000]
-        pub fn bid(origin, id: T::AuctionId, #[compact] value: BalanceOf<T>) -> DispatchResult {
+        pub fn bid(origin, id: T::AuctionId, value: BalanceOf<T>) -> DispatchResult {
             let bidder = ensure_signed(origin)?;
             let mut auction = <Auctions<T>>::get(id).ok_or(Error::<T>::AuctionNotExist)?;
             let block_number = <frame_system::Module<T>>::block_number();
@@ -221,7 +222,11 @@ decl_module! {
             // Bid was accepted, time to refund the previous bidder.
             if let Some((a,b)) = &auction.bid {
                 let (previous_bidder,previous_bid) = &auction.bid.unwrap();
-                Self::unreserve_funds(previous_bidder, *previous_bid);
+                let unreserve_result = Self::unreserve_funds(previous_bidder, *previous_bid);
+                if let Err(_) = unreserve_result {
+                    // Funds couldn't be unreserved
+                    <++>
+                }
             } else {
                 // If needed, add additional handling here for when there's no previous bid.
                 //println!("No previous bid, let's not unreserve the unreservable.");
@@ -240,7 +245,13 @@ decl_module! {
             }
 
             // Reserve auction funds
-            Self::reserve_funds(&bidder, value);
+            let reserve_result = Self::reserve_funds(&bidder, value);
+            
+            if let Err(_) = reserve_result {
+                // Funds couldn't be reserved
+                <++>
+            }
+            
             // Update auction bid
             auction.bid = Some((bidder.clone(), value));
             <Auctions<T>>::insert(id, auction);
@@ -271,7 +282,7 @@ decl_module! {
                 start,
                 end);
             if let Ok(info) = event_info {
-                Self::deposit_event(RawEvent::AuctionUpdated(info));
+                Self::deposit_event(RawEvent::AuctionUpdated(info.old, info.new));
             }
             Ok(())
     }
@@ -360,7 +371,12 @@ impl<T: Trait> Module<T> {
             T::Currency::free_balance(target) - amount,
         )
         .map_err(|_e| <Error<T>>::TryReserve)?;
-        T::Currency::reserve(&target, amount);
+        let reserve_result = T::Currency::reserve(&target, amount);
+
+        if let Err(_) = reserve_result {
+            // Even thought ensure_can_withdraw passed, something went wrong during reserve.
+            <++>
+        }
 
         Ok(())
     }
@@ -572,7 +588,12 @@ impl<T: Trait> Module<T> {
             //    now, qbid
             //);
 
-            Self::place_queued_bid(qbid);
+            let pq_result = Self::place_queued_bid(qbid);
+
+            if let Err(_) = pq_result {
+                // Something went wrong placing the queued bid, for now throw an event + log
+                <++>
+            }
         }
     }
 
