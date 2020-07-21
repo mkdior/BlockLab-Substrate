@@ -142,8 +142,7 @@ decl_event!(
         Balance = BalanceOf<T>,
         BlockNumber = <T as system::Trait>::BlockNumber,
         AuctionId = <T as Trait>::AuctionId,
-        //        GeneralInfo = <T as Trait>::GeneralInformationContainer,
-        //        Auction = InfoCond<T>,
+        GenInfo = <T as Trait>::GeneralInformationContainer,
     {
         // Currency Events
         // Called when funds are reserved (e.g. when placing a bid)
@@ -165,20 +164,36 @@ decl_event!(
         // Called when an auction ends with 0 bids.
         AuctionEndUndecided(AuctionId),
         // Called when a new auction is created.
-        //AuctionCreated(
-        //    AuctionId,
-        //    AuctionInfo<
-        //        AccountId,
-        //        Balance,
-        //        BlockNumber,
-        //        GeneralInfo,
-        //    >,
-        //),
-        // Called when an existing auction is updated.
-        //                old      new
-        //        AuctionUpdated(Auction, Auction),
-        // Called when an existing auction is deleted.
-        //AuctionDeleted(Auction),
+        AuctionCreated(
+            AuctionId,   // Auction ID
+            AccountId,   // Creator
+            AccountId,   // Terminal
+            BlockNumber, // Start
+            BlockNumber, // End
+            GenInfo,     // Timestamp
+            GenInfo,     // No. Containers
+            GenInfo,     // No. in TEU
+        ),
+        // Called when an auction is updated.
+        // TODO(HAMZA):: Reform this, perhaps event aren't meant to carry this much information?
+        AuctionUpdated(
+            // Old Auction Information
+            AuctionId,   // Auction ID
+            GenInfo,     // Timestamp
+            GenInfo,     // No. Containers
+            GenInfo,     // No. in TEU
+            BlockNumber, // Start
+            BlockNumber, // End
+            // New Auction Information
+            GenInfo,     // Timestamp
+            GenInfo,     // No. Containers
+            GenInfo,     // No. in TEU
+            BlockNumber, // Start
+            BlockNumber, // End
+        ),
+        // Called when an auction is deleted.
+        AuctionDeleted(AuctionId),
+
         // Other Events
         DummyEvent(),
     }
@@ -186,21 +201,39 @@ decl_event!(
 
 decl_error! {
     pub enum Error for Module<T: Trait> {
+        // Thrown when an auction which doesn't exist is called.
         AuctionNotExist,
+        // Thrown when some action is performed on an auction which hasn't been started yet. To
+        // perform said action, the auction has to be started.
         AuctionNotStarted,
+        // Thrown when any given bid isn't accepted. This is mostly due to insufficient funds
+        // available on the initiator's account.
         BidNotAccepted,
+        // Thrown when any given initiator tries to bid an insane price.
         InvalidBidPrice,
 
+        // Thrown when any given initiator tries to perform an action on some object which doesn't
+        // belong to said initiator. This is usually thrown whenever an auction is updated/removed.
         PermissionError,
+        // Thrown when any given initiator tries to update his/her auction start-time  while the auction is
+        // already live.
         AuctionAlreadyLive,
-        ProposedStartPassed,
+        // Thrown when any given initiator tries to update his/her auction while the auction itself
+        // already contains a bid. Once a user bids, the auction is set in stone, unless deleted.
         CannotUpdateActiveAuction,
 
+        // Thrown when ensure_can_withdraw fails
         TryReserve,
+        // Thrown when too much funds are being reserved. Initiator doesn't have enough funds.
         AmbitiousReserve,
+        // Thrown when too much funds are being unreserved. This should never happen, if it does,
+        // the whole chain should stop because there's a bug, hence the panic!.
         AmbitiousUnreserve,
+        // Thrown when reserved funds are being overdrawn while transfering. This should never
+        // happen, if it does, the whole chain should stop because there's a bug, hence the panic!.
         AmbitiousTransfer,
 
+        // Thrown for testing purposes or when no explanation can be given.
         Unexplained,
     }
 }
@@ -326,8 +359,27 @@ decl_module! {
                 },
                 start,
                 end);
+
             if let Ok(info) = event_info {
-//                Self::deposit_event(RawEvent::AuctionUpdated(info.old, info.new));
+                if let (Some(old_end), Some(new_end)) = (info.old.end, info.new.end) {
+                    Self::deposit_event(
+                        // Result<AuctionUpdateComplete<InfoCond<T>>, Error<T>
+                        // Always true
+                        RawEvent::AuctionUpdated(
+                            id,
+                            info.old.core.timestamp,
+                            info.old.core.cargo.0,
+                            info.old.core.cargo.1,
+                            info.old.start,
+                            old_end,
+
+                            info.new.core.timestamp,
+                            info.new.core.cargo.0,
+                            info.new.core.cargo.1,
+                            info.new.start,
+                            new_end,
+                            ));
+                        }
             }
             Ok(())
     }
@@ -352,7 +404,19 @@ decl_module! {
                },
                start,
                Some(end));
-//            Self::deposit_event(RawEvent::AuctionCreated(auction_id, auction));
+           if let Some(end) = auction.end {
+               Self::deposit_event(
+                   RawEvent::AuctionCreated(
+                       auction_id,
+                       auction.creator,
+                       auction.slot_origin,
+                       auction.start,
+                       end,
+                       auction.core.timestamp,
+                       auction.core.cargo.0,
+                       auction.core.cargo.1,
+                       ));
+           }
 
             Ok(())
        }
@@ -364,7 +428,7 @@ decl_module! {
 
             if let Ok(inner) = remove_auction {
                 if let Some(auction) = inner {
-//                    Self::deposit_event(RawEvent::AuctionDeleted(auction));
+                    Self::deposit_event(RawEvent::AuctionDeleted(id));
                 }
             }
             Ok(())
@@ -746,7 +810,7 @@ impl<T: Trait> Auction<T::AccountId, T::BlockNumber, T::GeneralInformationContai
             // Ensure that propsed start hasn't passed already.
             ensure!(
                 new_start > <system::Module<T>>::block_number(),
-                <Error<T>>::ProposedStartPassed
+                <Error<T>>::AuctionAlreadyLive
             );
 
             // Update auction's start
