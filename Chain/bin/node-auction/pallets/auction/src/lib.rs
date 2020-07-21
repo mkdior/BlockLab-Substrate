@@ -1,8 +1,9 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-////////////////////////////////////////////////////////////////////////////////////////////////
-// Imports
-// /////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////
+///////////////// Imports //////////////////
+////////////////////////////////////////////
+
 #[allow(unused_imports)]
 use frame_support::{
     decl_error, decl_event, decl_module, decl_storage,
@@ -29,27 +30,39 @@ use frame_system::{self as system, ensure_signed};
 #[allow(unused_imports)]
 use auction_traits::auction::*;
 
-////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////
+////////////////// Tests ///////////////////
+////////////////////////////////////////////
 
 #[cfg(test)]
 mod tests;
 
+////////////////////////////////////////////
+///////// Auctioning Module Code ///////////
+////////////////////////////////////////////
+
+// The currency type used in this module.
 pub type BalanceOf<T> =
     <<T as Trait>::Currency as Currency<<T as system::Trait>::AccountId>>::Balance;
-/// AuctionInfo condensed down to a single type parameter.
+
+// AuctionInfo condensed into a single type, note that type aliases cannot be used in the type
+// definition list for the Events, Module and/or Storage structs/enum/traits.
 pub type InfoCond<T> = AuctionInfo<
     <T as system::Trait>::AccountId,
     BalanceOf<T>,
     <T as system::Trait>::BlockNumber,
     <T as Trait>::GeneralInformationContainer,
 >;
+
+// Dummy type used for debugging purposes.
 pub type Dummy = u64;
 
-/// The pallet's configuration trait.
 pub trait Trait: system::Trait + Sized {
-    /// The overarching event type.
+    // The overarching event type.
     type Event: From<Event<Self>> + Into<<Self as system::Trait>::Event>;
+    // Definition of this module's currency.
     type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
+    // Definition of this module's auction id number.
     type AuctionId: Parameter
         + Member
         + AtLeast32Bit
@@ -57,12 +70,19 @@ pub trait Trait: system::Trait + Sized {
         + Copy
         + MaybeSerializeDeserialize
         + Printable;
+    // Definition of this module's general information type. This type makes sure that any
+    // information stored in custom structs complies with Substrate's rules for stored types. Even
+    // though native types are standardly forced into these bounds, this type has been added for
+    // the sake of clarity.
     type GeneralInformationContainer: Parameter
         + Member
         + AtLeast32Bit
         + Default
         + Copy
         + MaybeSerializeDeserialize;
+    // Definition of this module's handler type. The handler type is used to enforce "custom"
+    // auctioning rules which are defined by the developer him/herself. If extra custom logic is
+    // needed, this is the place to add it to.
     type Handler: AuctionHandler<
         Self::AccountId,
         BalanceOf<Self>,
@@ -73,14 +93,22 @@ pub trait Trait: system::Trait + Sized {
 
 decl_storage! {
     trait Store for Module<T: Trait> as AuctionModule {
-        // pub Auction get(fn auctions) config() <-- requires you to set the initial values in
-        // Genesis configured for this runtime
+        // Storage for the auctions themselves. This is a mapping between an "AuctionId" and an
+        // "AuctionInfo", the "AuctionInfo" is stored in an Option for ease of use.
         pub Auctions get(fn auctions): map hasher(twox_64_concat) T::AuctionId => Option<AuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber, T::GeneralInformationContainer>>;
+        // Storage for the number of auctions (processed and active) in this module. After an
+        // auction has ended, this number is not reset.
         pub AuctionsIndex get(fn auctions_index): T::AuctionId;
+        // Each block, this storage item is queued with the current block_number, if it's
+        // contained within, it means that an auction is ending on this given block. This improves
+        // lookup performance.
         pub AuctionEndTime get(fn auction_end_time): double_map hasher(twox_64_concat) T::BlockNumber, hasher(twox_64_concat) T::AuctionId => Option<bool>;
-
+        // Storage for queued bids. Bids live in this item untill they can be placed, once placed,
+        // they're removed from this item.
         pub QueuedBids get(fn queued_bids): map hasher(twox_64_concat) T::BlockNumber => Option<QueuedBid<T::AccountId, BalanceOf<T>, T::AuctionId>>;
     }
+        // This section is used to process the genesis information provided into the auctioning
+        // module. This is mainly needed for testing purposes.
         add_extra_genesis {
             config(_auctions):
                 Vec<(T::AccountId,
@@ -114,7 +142,8 @@ decl_event!(
         Balance = BalanceOf<T>,
         BlockNumber = <T as system::Trait>::BlockNumber,
         AuctionId = <T as Trait>::AuctionId,
-        Auction = InfoCond<T>,
+        //        GeneralInfo = <T as Trait>::GeneralInformationContainer,
+        //        Auction = InfoCond<T>,
     {
         // Currency Events
         // Called when funds are reserved (e.g. when placing a bid)
@@ -124,7 +153,7 @@ decl_event!(
         // Called when transfering released funds.
         TransferFunds(AccountId, AccountId, Balance, BlockNumber),
 
-        // Auction Events
+        /// Auction Events
         // Called when a bid is placed.
         Bid(AuctionId, AccountId, Balance),
         // Called when a bid is queued.
@@ -136,12 +165,20 @@ decl_event!(
         // Called when an auction ends with 0 bids.
         AuctionEndUndecided(AuctionId),
         // Called when a new auction is created.
-        AuctionCreated(AuctionId, Auction),
+        //AuctionCreated(
+        //    AuctionId,
+        //    AuctionInfo<
+        //        AccountId,
+        //        Balance,
+        //        BlockNumber,
+        //        GeneralInfo,
+        //    >,
+        //),
         // Called when an existing auction is updated.
         //                old      new
-        AuctionUpdated(Auction, Auction),
+        //        AuctionUpdated(Auction, Auction),
         // Called when an existing auction is deleted.
-        AuctionDeleted(Auction),
+        //AuctionDeleted(Auction),
         // Other Events
         DummyEvent(),
     }
@@ -155,6 +192,9 @@ decl_error! {
         InvalidBidPrice,
 
         PermissionError,
+        AuctionAlreadyLive,
+        ProposedStartPassed,
+        CannotUpdateActiveAuction,
 
         TryReserve,
         AmbitiousReserve,
@@ -287,7 +327,7 @@ decl_module! {
                 start,
                 end);
             if let Ok(info) = event_info {
-                Self::deposit_event(RawEvent::AuctionUpdated(info.old, info.new));
+//                Self::deposit_event(RawEvent::AuctionUpdated(info.old, info.new));
             }
             Ok(())
     }
@@ -312,7 +352,7 @@ decl_module! {
                },
                start,
                Some(end));
-            Self::deposit_event(RawEvent::AuctionCreated(auction_id, auction));
+//            Self::deposit_event(RawEvent::AuctionCreated(auction_id, auction));
 
             Ok(())
        }
@@ -324,7 +364,7 @@ decl_module! {
 
             if let Ok(inner) = remove_auction {
                 if let Some(auction) = inner {
-                    Self::deposit_event(RawEvent::AuctionDeleted(auction));
+//                    Self::deposit_event(RawEvent::AuctionDeleted(auction));
                 }
             }
             Ok(())
@@ -658,16 +698,22 @@ impl<T: Trait> Auction<T::AccountId, T::BlockNumber, T::GeneralInformationContai
         id: Self::AuctionId,
         origin: T::AccountId,
         core_info: AuctionUpdateInfo<T::GeneralInformationContainer>,
-        // TODO(HAMZA):: If current block < than start block,
-        // enable the user to change the start date.
-        _start: Option<T::BlockNumber>,
+        start: Option<T::BlockNumber>,
         end: Option<T::BlockNumber>,
     ) -> Result<AuctionUpdateComplete<InfoCond<T>>, Error<T>> {
         // Ensure auction exists and make it mutable for our adjustments
         let mut auction = <Auctions<T>>::get(id).ok_or(Error::<T>::AuctionNotExist)?;
         // Ensure that origin is the owner of the auction
         ensure!(auction.creator == origin, <Error<T>>::PermissionError);
+
         let auction_original = auction.clone();
+
+        // Ensure that the auction has no bids, if it has bids it means that the buyer of the
+        // auction expects a certain time-slot. If a bid has been placed, only cancellation is
+        // possible.
+        if let Some(_) = &auction.bid {
+            Err::<T, Error<T>>(<Error<T>>::CannotUpdateActiveAuction);
+        }
 
         // Replace auction's end-time if specified by the origin
         if let Some(new_end) = end {
@@ -690,7 +736,25 @@ impl<T: Trait> Auction<T::AccountId, T::BlockNumber, T::GeneralInformationContai
             auction.core.cargo.1 = num_teu;
         }
 
+        if let Some(new_start) = start {
+            // User wants to postpone the auction's start block.
+            // First ensure that the auction hasn't already
+            ensure!(
+                auction.start > <system::Module<T>>::block_number(),
+                <Error<T>>::AuctionAlreadyLive
+            );
+            // Ensure that propsed start hasn't passed already.
+            ensure!(
+                new_start > <system::Module<T>>::block_number(),
+                <Error<T>>::ProposedStartPassed
+            );
+
+            // Update auction's start
+            auction.start = new_start;
+        }
+
         let auction_updated = auction.clone();
+
         <Auctions<T>>::insert(id, auction);
         Ok(AuctionUpdateComplete {
             old: auction_original,
