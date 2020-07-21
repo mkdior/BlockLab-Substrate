@@ -776,7 +776,7 @@ impl<T: Trait> Auction<T::AccountId, T::BlockNumber, T::GeneralInformationContai
         // auction expects a certain time-slot. If a bid has been placed, only cancellation is
         // possible.
         if let Some(_) = &auction.bid {
-            Err::<T, Error<T>>(<Error<T>>::CannotUpdateActiveAuction);
+            return Err(<Error<T>>::CannotUpdateActiveAuction);
         }
 
         // Replace auction's end-time if specified by the origin
