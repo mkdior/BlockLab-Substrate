@@ -1,5 +1,6 @@
 use codec::FullCodec;
 use codec::{Decode, Encode};
+use frame_support::traits::*;
 use sp_runtime::{traits::MaybeSerializeDeserialize, RuntimeDebug};
 use sp_std::{
     cmp::{Eq, PartialEq},

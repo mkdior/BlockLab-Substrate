@@ -243,6 +243,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "auction-api"
+version = "0.1.0"
+dependencies = [
+ "auction-traits",
+ "frame-support",
+ "serde_json",
+ "sp-api",
+]
+
+[[package]]
 name = "auction-traits"
 version = "0.0.1"
 dependencies = [
@@ -3324,6 +3334,7 @@ dependencies = [
 name = "node-auction-runtime"
 version = "2.0.0-rc3"
 dependencies = [
+ "auction-api",
  "auction-traits",
  "frame-executive",
  "frame-support",

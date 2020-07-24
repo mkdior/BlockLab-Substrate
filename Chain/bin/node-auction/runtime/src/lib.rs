@@ -309,7 +309,6 @@ impl AuctionHandler<AccountId, Balance, BlockNumber, AuctionId> for Handler {
     }
 }
 
-/// Used for the module auction in `./template.rs`
 impl auction::Trait for Runtime {
     type Event = Event;
     type Currency = balances::Module<Self>;
@@ -470,6 +469,47 @@ impl_runtime_apis! {
             // defined our key owner proof type as a bottom type (i.e. a type
             // with no values).
             None
+        }
+    }
+    
+    impl auction_api::AuctionInformationAPI<Block, AccountId, AuctionId, Balance, BlockNumber, GeneralInformationContainer> for Runtime {
+        
+        fn auction_exists(id: AuctionId) -> bool {
+            AuctionModule::auction_exists(id)
+        }
+        
+        fn auction_query_informal(
+            id: AuctionId,
+        ) -> Option<Box<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer>>> {
+            AuctionModule::auction_query_informal(id)
+        }
+
+        fn auction_query_informal_all(
+        ) -> Option<Box<Vec<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer>>>> {
+            AuctionModule::auction_query_informal_all()
+        }
+
+        fn auction_query_informal_all_status(
+            active: bool,
+        ) -> Option<Box<Vec<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer>>>> {
+            AuctionModule::auction_query_informal_all_status(active)
+        }
+
+        fn auction_query_formal(
+            id: AuctionId,
+        ) -> Option<Box<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer>>> {
+            AuctionModule::auction_query_formal(id)
+        }
+
+        fn auction_query_formal_all(
+        ) -> Option<Box<Vec<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer>>>> {
+            AuctionModule::auction_query_formal_all()
+        }
+
+        fn auction_query_formal_all_status(
+            active: bool,
+        ) -> Option<Box<Vec<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer>>>> {
+            AuctionModule::auction_query_formal_all_status(active)
         }
     }
 }

@@ -521,28 +521,30 @@ impl<T: Trait> Module<T> {
     }
 
     #[allow(dead_code)]
-    fn auction_exists(id: T::AuctionId) -> bool {
+    pub fn auction_exists(id: T::AuctionId) -> bool {
         <Auctions<T>>::contains_key(id)
     }
 
     /// Returns an auction in its original form. Original means the format it's actually stored in the
     /// database.
     #[allow(dead_code)]
-    fn auction_query_informal(
+    pub fn auction_query_informal(
         id: T::AuctionId,
-    ) -> Result<
+    ) -> Option<
         AuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber, T::GeneralInformationContainer>,
-        Error<T>,
     > {
-        let auction = <Auctions<T>>::get(id).ok_or(<Error<T>>::AuctionNotExist)?;
-
-        Ok(auction)
+        let auction = <Auctions<T>>::get(id);
+        if auction.is_some() {
+            auction
+        } else {
+            None
+        }
     }
 
     /// Returns a vector of all currently stored auctions regardless of the auction's activity
     /// status. Returns everything in its original form.
     #[allow(dead_code)]
-    fn auction_query_informal_all() -> Option<
+    pub fn auction_query_informal_all() -> Option<
         Vec<
             AuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber, T::GeneralInformationContainer>,
         >,
@@ -556,7 +558,7 @@ impl<T: Trait> Module<T> {
     }
 
     #[allow(dead_code)]
-    fn auction_query_informal_all_status(
+    pub fn auction_query_informal_all_status(
         _is_active: bool,
     ) -> Option<
         Vec<
@@ -579,7 +581,7 @@ impl<T: Trait> Module<T> {
     }
 
     #[allow(dead_code)]
-    fn auction_query_formal(
+    pub fn auction_query_formal(
         id: T::AuctionId,
     ) -> Option<
         UIAuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber, T::GeneralInformationContainer>,
@@ -603,7 +605,7 @@ impl<T: Trait> Module<T> {
     }
 
     #[allow(dead_code)]
-    fn auction_query_formal_all() -> Option<
+    pub fn auction_query_formal_all() -> Option<
         Vec<
             UIAuctionInfo<
                 T::AccountId,
@@ -634,7 +636,7 @@ impl<T: Trait> Module<T> {
     }
 
     #[allow(dead_code)]
-    fn auction_query_formal_all_status(
+    pub fn auction_query_formal_all_status(
         is_active: bool,
     ) -> Option<
         Vec<
@@ -676,7 +678,6 @@ impl<T: Trait> Module<T> {
     fn place_queued_bid(
         qbid: QueuedBid<T::AccountId, BalanceOf<T>, T::AuctionId>,
     ) -> DispatchResult {
-
         let mut auction = <Auctions<T>>::get(qbid.auction_id).ok_or(Error::<T>::AuctionNotExist)?;
         let block_number = <frame_system::Module<T>>::block_number();
 
