@@ -248,6 +248,7 @@ version = "0.1.0"
 dependencies = [
  "auction-traits",
  "frame-support",
+ "parity-scale-codec",
  "serde_json",
  "sp-api",
 ]

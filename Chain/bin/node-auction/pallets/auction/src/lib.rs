@@ -10,7 +10,7 @@ use frame_support::{
     dispatch::Parameter,
     ensure,
     sp_runtime::{
-        traits::{AtLeast32Bit, MaybeSerializeDeserialize, Member, One, Printable, Zero},
+        traits::{AtLeast32Bit, Bounded, MaybeSerializeDeserialize, Member, One, Printable, Zero},
         DispatchError, DispatchResult,
     },
     traits::{
@@ -20,6 +20,8 @@ use frame_support::{
     weights::{DispatchInfo, Weight},
     IterableStorageDoubleMap, IterableStorageMap,
 };
+
+use parity_scale_codec::{Codec, Decode, Encode};
 
 // --TEMP--Hamza-- Vector definition comes from here; required!
 use frame_support::inherent::*;

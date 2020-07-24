@@ -37,6 +37,7 @@ sp-std = { version = "2.0.0-rc3", default-features = false, path = "../../../pri
 sp-transaction-pool = { version = "2.0.0-rc3", default-features = false, path = "../../../primitives/transaction-pool" }
 sp-version = { version = "2.0.0-rc3", default-features = false, path = "../../../primitives/version" }
 
+
 auction-traits= { default-features = false, path = "../../utils/auction/traits" }
 auction = { version = "2.0.0-rc3", default-features = false, path = "../pallets/auction", package = "pallet-auction" }
 auction-api = { default-features = false, path = "../pallets/auction/auction-api" }

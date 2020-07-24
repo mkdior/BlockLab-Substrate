@@ -4,25 +4,32 @@
 use auction_traits::auction::{AuctionInfo, UIAuctionInfo};
 use frame_support::inherent::*;
 use frame_support::traits::*;
-
+use parity_scale_codec::{Codec, Decode, Encode, WrapperTypeEncode};
 sp_api::decl_runtime_apis! {
-    pub trait AuctionInformationAPI<AccountId, AuctionId, Balance, BlockNumber, GeneralInfo> {
+    pub trait AuctionInformationAPI<AccountId, AuctionId, Balance, BlockNumber, GeneralInfo>
+    where
+        AccountId: Codec,
+        AuctionId: Codec,
+        Balance: Codec,
+        BlockNumber: Codec,
+        GeneralInfo: Codec,
+    {
         fn auction_exists(id: AuctionId) -> bool;
         fn auction_query_informal(
             id: AuctionId,
-        ) -> Option<Box<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>;
+        ) -> Option<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>;
         fn auction_query_informal_all(
-        ) -> Option<Box<Vec<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>>;
+        ) -> Option<Vec<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>;
         fn auction_query_informal_all_status(
             active: bool,
-        ) -> Option<Box<Vec<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>>;
+        ) -> Option<Vec<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>;
         fn auction_query_formal(
             id: AuctionId,
-        ) -> Option<Box<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>;
+        ) -> Option<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>;
         fn auction_query_formal_all(
-        ) -> Option<Box<Vec<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>>;
+        ) -> Option<Vec<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>;
         fn auction_query_formal_all_status(
             active: bool,
-        ) -> Option<Box<Vec<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>>;
+        ) -> Option<Vec<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>;
     }
 }

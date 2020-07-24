@@ -44,6 +44,8 @@ pub use timestamp::Call as TimestampCall;
 
 use auction_traits::auction::*;
 
+use codec::{Encode, Decode, Codec};
+
 /// Importing a auction pallet
 pub use auction;
 
@@ -471,7 +473,7 @@ impl_runtime_apis! {
             None
         }
     }
-    
+     
     impl auction_api::AuctionInformationAPI<Block, AccountId, AuctionId, Balance, BlockNumber, GeneralInformationContainer> for Runtime {
         
         fn auction_exists(id: AuctionId) -> bool {
@@ -480,35 +482,35 @@ impl_runtime_apis! {
         
         fn auction_query_informal(
             id: AuctionId,
-        ) -> Option<Box<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer>>> {
+        ) -> Option<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer>> {
             AuctionModule::auction_query_informal(id)
         }
 
         fn auction_query_informal_all(
-        ) -> Option<Box<Vec<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer>>>> {
+        ) -> Option<Vec<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer>>> {
             AuctionModule::auction_query_informal_all()
         }
 
         fn auction_query_informal_all_status(
             active: bool,
-        ) -> Option<Box<Vec<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer>>>> {
+        ) -> Option<Vec<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer>>> {
             AuctionModule::auction_query_informal_all_status(active)
         }
 
         fn auction_query_formal(
             id: AuctionId,
-        ) -> Option<Box<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer>>> {
+        ) -> Option<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer>> {
             AuctionModule::auction_query_formal(id)
         }
 
         fn auction_query_formal_all(
-        ) -> Option<Box<Vec<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer>>>> {
+        ) -> Option<Vec<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer>>> {
             AuctionModule::auction_query_formal_all()
         }
 
         fn auction_query_formal_all_status(
             active: bool,
-        ) -> Option<Box<Vec<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer>>>> {
+        ) -> Option<Vec<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer>>> {
             AuctionModule::auction_query_formal_all_status(active)
         }
     }

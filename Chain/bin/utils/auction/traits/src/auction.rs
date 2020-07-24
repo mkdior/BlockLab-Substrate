@@ -11,7 +11,7 @@ use sp_std::{
 /// that if an auction has to be finished as soon as possible, it should be displayed as early as
 /// the initiator wants it to be displayed
 #[cfg_attr(feature = "std", derive(PartialEq, Eq))]
-#[derive(Encode, Decode, RuntimeDebug, Clone, Copy)]
+#[derive(Clone, Copy, RuntimeDebug, Encode, Decode, Default)]
 pub struct QueuedBid<AccountId, Balance, AuctionId> {
     /// The bid to be queued.
     pub bid: (AccountId, Balance),
@@ -34,7 +34,7 @@ pub struct AuctionCoreInfo<GeneralInformationContainer> {
 /// This struct is used for the AuctionUpdated event, shows the old AuctionInfo
 /// and the new AuctionInfo.
 #[cfg_attr(feature = "std", derive(PartialEq, Eq))]
-#[derive(Clone, Copy, RuntimeDebug, Encode, Decode)]
+#[derive(Encode, Decode, RuntimeDebug, Clone, Copy, Default)]
 pub struct AuctionUpdateComplete<A> {
     pub old: A,
     pub new: A,
@@ -45,7 +45,7 @@ pub struct AuctionUpdateComplete<A> {
 /// see the field names, which is a nice indicator which shows exactly what is being
 /// updated.
 #[cfg_attr(feature = "std", derive(PartialEq, Eq))]
-#[derive(Clone, Copy, RuntimeDebug, Default)]
+#[derive(Clone, Copy, RuntimeDebug, Encode, Decode)]
 pub struct AuctionUpdateInfo<GeneralInformationContainer> {
     pub timestamp: Option<GeneralInformationContainer>,
     pub num_con: Option<GeneralInformationContainer>,
@@ -56,7 +56,7 @@ pub struct AuctionUpdateInfo<GeneralInformationContainer> {
 /// the barge also states which terminal this auctioned off slot belongs to. This can later be
 /// expanded into verification of slot ownership etc.
 #[cfg_attr(feature = "std", derive(PartialEq, Eq))]
-#[derive(Encode, Decode, RuntimeDebug, Clone, Copy)]
+#[derive(Clone, Copy, RuntimeDebug, Encode, Decode)]
 pub struct AuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer> {
     /// Creator of the auction (Barge)
     pub creator: AccountId,
@@ -74,7 +74,7 @@ pub struct AuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContai
 
 /// Auction information displayed to the user on request, this contains specific auction data.
 #[cfg_attr(feature = "std", derive(PartialEq, Eq))]
-#[derive(Encode, Decode, RuntimeDebug, Clone, Copy)]
+#[derive(Clone, Copy, RuntimeDebug, Encode, Decode)]
 pub struct UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer> {
     /// Original owner of the time-slot
     pub slot_owner: AccountId,
