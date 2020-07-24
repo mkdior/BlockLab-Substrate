@@ -254,6 +254,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "auction-rpc"
+version = "0.1.0"
+
+[[package]]
 name = "auction-traits"
 version = "0.0.1"
 dependencies = [
