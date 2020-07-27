@@ -3,8 +3,8 @@
 
 use auction_traits::auction::{AuctionInfo, UIAuctionInfo};
 use frame_support::inherent::*;
-use frame_support::traits::*;
-use parity_scale_codec::{Codec, Decode, Encode, WrapperTypeEncode};
+use parity_scale_codec::Codec;
+
 sp_api::decl_runtime_apis! {
     pub trait AuctionInformationAPI<AccountId, AuctionId, Balance, BlockNumber, GeneralInfo>
     where
