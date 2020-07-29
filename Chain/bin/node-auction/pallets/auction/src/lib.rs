@@ -21,8 +21,6 @@ use frame_support::{
     IterableStorageDoubleMap, IterableStorageMap,
 };
 
-use parity_scale_codec::{Codec, Decode, Encode};
-
 // --TEMP--Hamza-- Vector definition comes from here; required!
 use frame_support::inherent::*;
 

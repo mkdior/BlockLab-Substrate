@@ -2,9 +2,8 @@
 #![allow(clippy::too_many_arguments)]
 
 use auction_traits::auction::{AuctionInfo, UIAuctionInfo};
-use frame_support::inherent::*;
-use parity_scale_codec::Codec;
-
+use frame_support::inherent::Vec;
+use parity_scale_codec::{Codec};
 sp_api::decl_runtime_apis! {
     pub trait AuctionInformationAPI<AccountId, AuctionId, Balance, BlockNumber, GeneralInfo>
     where

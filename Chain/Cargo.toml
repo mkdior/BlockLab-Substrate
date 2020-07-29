@@ -3,8 +3,7 @@ members = [
 	"bin/node-auction/node",
 	"bin/node-auction/runtime",
 	"bin/node-auction/pallets/auction",
-  "bin/node-auction/pallets/auction/auction-api",
-  "bin/node-auction/pallets/auction/auction-rpc",
+  "bin/utils/auction/traits",
 	"bin/node/bench",
 	"bin/node/browser-testing",
 	"bin/node/cli",
@@ -208,7 +207,7 @@ blake2 = { opt-level = 3 }
 blake2-rfc = { opt-level = 3 }
 blake2b_simd = { opt-level = 3 }
 blake2s_simd = { opt-level = 3 }
-chacha20-poly1305-aead = { opt-level = 3 }
+chacha20poly1305 = { opt-level = 3 }
 cranelift-codegen = { opt-level = 3 }
 cranelift-wasm = { opt-level = 3 }
 crc32fast = { opt-level = 3 }
