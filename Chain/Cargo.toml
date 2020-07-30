@@ -3,6 +3,8 @@ members = [
 	"bin/node-auction/node",
 	"bin/node-auction/runtime",
 	"bin/node-auction/pallets/auction",
+  "bin/node-auction/pallets/auction/auction-api",
+  "bin/node-auction/pallets/auction/auction-rpc",
   "bin/utils/auction/traits",
 	"bin/node/bench",
 	"bin/node/browser-testing",
