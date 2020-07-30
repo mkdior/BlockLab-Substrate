@@ -15,29 +15,89 @@ targets = ["x86_64-unknown-linux-gnu"]
 [[bin]]
 name = "node-auction"
 
-[dependencies]
-structopt = "0.3.8"
+# Dependencies #
+################
+[dependencies.structopt]
+version = "0.3.8"
 
-sc-cli = { version = "0.8.0-rc5", path = "../../../client/cli", features = ["wasmtime"] }
-sp-core = { version = "2.0.0-rc5", path = "../../../primitives/core" }
-sc-executor = { version = "0.8.0-rc5", path = "../../../client/executor", features = ["wasmtime"] }
-sc-service = { version = "0.8.0-rc5", path = "../../../client/service", features = ["wasmtime"] }
-sp-inherents = { version = "2.0.0-rc5", path = "../../../primitives/inherents" }
-sc-transaction-pool = { version = "2.0.0-rc5", path = "../../../client/transaction-pool" }
-sp-transaction-pool = { version = "2.0.0-rc5", path = "../../../primitives/transaction-pool" }
-sc-network = { version = "0.8.0-rc5", path = "../../../client/network" }
-sc-consensus-aura = { version = "0.8.0-rc5", path = "../../../client/consensus/aura" }
-sp-consensus-aura = { version = "0.8.0-rc5", path = "../../../primitives/consensus/aura" }
-sp-consensus = { version = "0.8.0-rc5", path = "../../../primitives/consensus/common" }
-sc-consensus = { version = "0.8.0-rc5", path = "../../../client/consensus/common" }
-sc-finality-grandpa = { version = "0.8.0-rc5", path = "../../../client/finality-grandpa" }
-sp-finality-grandpa = { version = "2.0.0-rc5", path = "../../../primitives/finality-grandpa" }
-sc-client-api = { version = "2.0.0-rc5", path = "../../../client/api" }
-sp-runtime = { version = "2.0.0-rc5", path = "../../../primitives/runtime" }
-sc-basic-authorship = { path = "../../../client/basic-authorship", version = "0.8.0-rc5"}
+[dependencies.sc-cli]
+version = "0.8.0-rc5"
+path = "../../../client/cli"
+features = ["wasmtime"] }
 
-node-auction-runtime = { version = "2.0.0-rc5", path = "../runtime" }
+[dependencies.sp-core]
+version = "2.0.0-rc5"
+path = "../../../primitives/core"
 
-[build-dependencies]
-substrate-build-script-utils = { version = "2.0.0-rc5", path = "../../../utils/build-script-utils" }
+[dependencies.sc-executor]
+version = "0.8.0-rc5"
+path = "../../../client/executor"
+features = ["wasmtime"]
+
+[dependencies.sc-service]
+version = "0.8.0-rc5"
+path = "../../../client/service"
+features = ["wasmtime"]
+
+[dependencies.sp-inherents]
+version = "2.0.0-rc5"
+path = "../../../primitives/inherents"
+
+[dependencies.sc-transaction-pool]
+version = "2.0.0-rc5"
+path = "../../../client/transaction-pool"
+
+[dependencies.sp-transaction-pool]
+version = "2.0.0-rc5"
+path = "../../../primitives/transaction-pool"
+
+[dependencies.sc-network]
+version = "0.8.0-rc5"
+path = "../../../client/network"
+
+[dependenciessc-consensus-aura]
+version = "0.8.0-rc5"
+path = "../../../client/consensus/aura"
+
+[dependenciessp-consensus-aura]
+version = "0.8.0-rc5"
+path = "../../../primitives/consensus/aura"
+
+[dependenciessp-consensus]
+version = "0.8.0-rc5"
+path = "../../../primitives/consensus/common"
+
+[dependenciessc-consensus]
+version = "0.8.0-rc5"
+path = "../../../client/consensus/common"
+
+[dependenciessc-finality-grandpa]
+version = "0.8.0-rc5"
+path = "../../../client/finality-grandpa"
+
+[dependenciessp-finality-grandpa]
+version = "2.0.0-rc5"
+path = "../../../primitives/finality-grandpa"
+
+[dependenciessc-client-api]
+version = "2.0.0-rc5"
+path = "../../../client/api"
+
+[dependenciessp-runtime]
+version = "2.0.0-rc5"
+path = "../../../primitives/runtime"
+
+[dependenciessc-basic-authorship]
+version = "0.8.0-rc5"
+path = "../../../client/basic-authorship"
+
+[dependenciesnode-auction-runtime]
+version = "2.0.0-rc5"
+path = "../runtime"
+
+#Build Dependencies#
+####################
+[build-dependencies.substrate-build-script-utils]
+version = "2.0.0-rc5"
+path = "../../../utils/build-script-utils"
 
