@@ -318,7 +318,6 @@ dependencies = [
  "auction-traits",
  "frame-support",
  "parity-scale-codec",
- "serde_json",
  "sp-api",
 ]
 
@@ -4155,7 +4154,6 @@ dependencies = [
  "auction-traits",
  "frame-support",
  "frame-system",
- "num-traits 0.2.11",
  "pallet-balances",
  "parity-scale-codec",
  "serde",

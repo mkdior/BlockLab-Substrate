@@ -23,7 +23,7 @@ version = "0.3.8"
 [dependencies.sc-cli]
 version = "0.8.0-rc5"
 path = "../../../client/cli"
-features = ["wasmtime"] }
+features = ["wasmtime"]
 
 [dependencies.sp-core]
 version = "2.0.0-rc5"
@@ -55,43 +55,43 @@ path = "../../../primitives/transaction-pool"
 version = "0.8.0-rc5"
 path = "../../../client/network"
 
-[dependenciessc-consensus-aura]
+[dependencies.sc-consensus-aura]
 version = "0.8.0-rc5"
 path = "../../../client/consensus/aura"
 
-[dependenciessp-consensus-aura]
+[dependencies.sp-consensus-aura]
 version = "0.8.0-rc5"
 path = "../../../primitives/consensus/aura"
 
-[dependenciessp-consensus]
+[dependencies.sp-consensus]
 version = "0.8.0-rc5"
 path = "../../../primitives/consensus/common"
 
-[dependenciessc-consensus]
+[dependencies.sc-consensus]
 version = "0.8.0-rc5"
 path = "../../../client/consensus/common"
 
-[dependenciessc-finality-grandpa]
+[dependencies.sc-finality-grandpa]
 version = "0.8.0-rc5"
 path = "../../../client/finality-grandpa"
 
-[dependenciessp-finality-grandpa]
+[dependencies.sp-finality-grandpa]
 version = "2.0.0-rc5"
 path = "../../../primitives/finality-grandpa"
 
-[dependenciessc-client-api]
+[dependencies.sc-client-api]
 version = "2.0.0-rc5"
 path = "../../../client/api"
 
-[dependenciessp-runtime]
+[dependencies.sp-runtime]
 version = "2.0.0-rc5"
 path = "../../../primitives/runtime"
 
-[dependenciessc-basic-authorship]
+[dependencies.sc-basic-authorship]
 version = "0.8.0-rc5"
 path = "../../../client/basic-authorship"
 
-[dependenciesnode-auction-runtime]
+[dependencies.node-auction-runtime]
 version = "2.0.0-rc5"
 path = "../runtime"
 

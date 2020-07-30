@@ -274,12 +274,12 @@ pub struct Handler;
 
 impl AuctionHandler<AccountId, Balance, BlockNumber, AuctionId> for Handler {
     fn on_new_bid(
-        now_: BlockNumber,
-        id_: AuctionId,
-        new_bid_: (AccountId, Balance),
+        _now_: BlockNumber,
+        _id_: AuctionId,
+        _new_bid_: (AccountId, Balance),
         last_bid_: Option<(AccountId, Balance)>,
     ) -> OnNewBidResult<BlockNumber> {
-        if let Some(bid) = last_bid_ {
+        if let Some(_bid) = last_bid_ {
             //println!(
             //    "Last bid information [{0:#?}] \\
             //    Current bid information [{1:#?}]",
@@ -295,19 +295,22 @@ impl AuctionHandler<AccountId, Balance, BlockNumber, AuctionId> for Handler {
     }
 
     fn on_auction_ended(
-        id_: AuctionId,
+        _id_: AuctionId,
         recipients_: (AccountId, AccountId),
         winner_: Option<(AccountId, Balance)>,
     ) {
         if let Some(winner) = winner_ {
             // Somebody has won, notify
-            AuctionModule::transfer_funds(&winner.0, &recipients_.0, winner.1);
-        //AuctionModule::deposit_event(RawEvent::AuctionEndDecided(winner.0, id_));
-        //println!("The winner: {:?}", winner);
+            if let Ok(_) = AuctionModule::transfer_funds(&winner.0, &recipients_.0, winner.1) {
+                // Funds have successfully been transferred.
+                sp_runtime::print("<RUNTIME>::<AUCTION_ENDED_W_WINNER_SUCCESS>");
+            } else {
+                // Something went wrong, log it. 
+                sp_runtime::print("<RUNTIME>::<AUCTION_ENDED_W_WINNER_ERROR>");
+            }
         } else if let None = winner_ {
             // Nobody has won, notify
-            //AuctionModule::deposit_event(RawEvent::AuctionEndUndecided(id_));
-            //println!("There were no bids, nobody has won");
+            sp_runtime::print("<RUNTIME>::<AUCTION_ENDED_WO_WINNER>");
         }
     }
 }

@@ -48,7 +48,7 @@ std = [
   'sp-runtime/std',
 	'frame-system/std',
 	'frame-support/std',
-  'auction-traits/std'
+  'auction-traits/std',
   'pallet-balances/std',
   'parity-scale-codec/std',
 ]
