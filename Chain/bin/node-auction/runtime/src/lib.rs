@@ -480,44 +480,44 @@ impl_runtime_apis! {
             None
         }
     }
-    impl auction_api::AuctionInformationAPI<Block, AccountId, AuctionId, Balance, BlockNumber, GeneralInformationContainer> for Runtime {
+    impl auction_api::AuctionInformationAPI<Block, AuctionId> for Runtime { //AccountId, AuctionId, Balance, BlockNumber, GeneralInformationContainer> for Runtime {
 
         fn auction_exists(id: AuctionId) -> bool {
             AuctionModule::auction_exists(id)
         }
 
-        fn auction_query_informal(
-            id: AuctionId,
-        ) -> Option<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer>> {
-            AuctionModule::auction_query_informal(id)
-        }
-
-        fn auction_query_informal_all(
-        ) -> Option<Vec<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer>>> {
-            AuctionModule::auction_query_informal_all()
-        }
-
-        fn auction_query_informal_all_status(
-            active: bool,
-        ) -> Option<Vec<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer>>> {
-            AuctionModule::auction_query_informal_all_status(active)
-        }
-
-        fn auction_query_formal(
-            id: AuctionId,
-        ) -> Option<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer>> {
-            AuctionModule::auction_query_formal(id)
-        }
-
-        fn auction_query_formal_all(
-        ) -> Option<Vec<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer>>> {
-            AuctionModule::auction_query_formal_all()
-        }
-
-        fn auction_query_formal_all_status(
-            active: bool,
-        ) -> Option<Vec<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer>>> {
-            AuctionModule::auction_query_formal_all_status(active)
-        }
+//        fn auction_query_informal(
+//            id: AuctionId,
+//        ) -> Option<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer>> {
+//            AuctionModule::auction_query_informal(id)
+//        }
+//
+//        fn auction_query_informal_all(
+//        ) -> Option<Vec<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer>>> {
+//            AuctionModule::auction_query_informal_all()
+//        }
+//
+//        fn auction_query_informal_all_status(
+//            active: bool,
+//        ) -> Option<Vec<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer>>> {
+//            AuctionModule::auction_query_informal_all_status(active)
+//        }
+//
+//        fn auction_query_formal(
+//            id: AuctionId,
+//        ) -> Option<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer>> {
+//            AuctionModule::auction_query_formal(id)
+//        }
+//
+//        fn auction_query_formal_all(
+//        ) -> Option<Vec<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer>>> {
+//            AuctionModule::auction_query_formal_all()
+//        }
+//
+//        fn auction_query_formal_all_status(
+//            active: bool,
+//        ) -> Option<Vec<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer>>> {
+//            AuctionModule::auction_query_formal_all_status(active)
+//        }
     }
 }
