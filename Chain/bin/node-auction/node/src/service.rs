@@ -7,7 +7,7 @@ pub use sc_executor::NativeExecutor;
 use sc_finality_grandpa::{
     FinalityProofProvider as GrandpaFinalityProofProvider, SharedVoterState,
 };
-use sc_service::{error::Error as ServiceError, Configuration, TaskManager};
+use sc_service::{error::Error as ServiceError, Configuration, TaskManager, RpcExtensionBuilder, NoopRpcExtensionBuilder};
 use sp_consensus_aura::sr25519::AuthorityPair as AuraPair;
 use sp_inherents::InherentDataProviders;
 use std::sync::Arc;
@@ -19,6 +19,13 @@ native_executor_instance!(
     node_auction_runtime::api::dispatch,
     node_auction_runtime::native_version,
 );
+
+//        .with_rpc_extensions(|builder| -> Result<RpcExtension, _> {
+//            // Make an io handler to be extended with individual RPCs
+//            let mut io = jsonrpc_core::IoHandler::default();
+//            // [dependencies.auction-rpc]
+//            io.extend_with(auction_rpc::AuctionInformationAPI::to_delegate(auction_rpc::AuctionInformation::new(builder.client().clone())));
+//            Ok(io)
 
 type FullClient = sc_service::TFullClient<Block, RuntimeApi, Executor>;
 type FullBackend = sc_service::TFullBackend<Block>;
@@ -142,6 +149,16 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
     let prometheus_registry = config.prometheus_registry().cloned();
     let telemetry_connection_sinks = sc_service::TelemetryConnectionSinks::default();
 
+    type RpcExtension = jsonrpc_core::IoHandler<sc_rpc::Metadata>;
+
+    let auction_rpc_builder: &'static NoopRpcExtensionBuilder<RpcExtension> = NoopRpcExtensionBuilder::<RpcExtension>({
+        let mut io = jsonrpc_core::IoHandler::default();
+        io.extend_with(auction_rpc::AuctionInformationAPI::to_delegate(
+            auction_rpc::AuctionInformation::new(client.clone()),
+        ));
+        io
+    });
+
     sc_service::spawn_tasks(sc_service::SpawnTasksParams {
         network: network.clone(),
         client: client.clone(),
@@ -149,7 +166,7 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
         task_manager: &mut task_manager,
         transaction_pool: transaction_pool.clone(),
         telemetry_connection_sinks: telemetry_connection_sinks.clone(),
-        rpc_extensions_builder: Box::new(|_| ()),
+        rpc_extensions_builder: Box::new(|_| (auction_rpc_builder.build(sc_rpc::DenyUnsafe::No))),
         on_demand: None,
         remote_blockchain: None,
         backend,
