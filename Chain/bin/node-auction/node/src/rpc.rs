@@ -90,7 +90,6 @@ where
     //AuctionAPI definition::
     //AuctionInformationAPI<AccountId, AuctionId, Balance, BlockNumber, GeneralInfo>
 
-
     io
 }
 

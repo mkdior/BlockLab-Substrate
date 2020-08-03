@@ -7,10 +7,7 @@ pub use sc_executor::NativeExecutor;
 use sc_finality_grandpa::{
     FinalityProofProvider as GrandpaFinalityProofProvider, SharedVoterState,
 };
-use sc_service::{
-    error::Error as ServiceError, Configuration,
-    TaskManager,
-};
+use sc_service::{error::Error as ServiceError, Configuration, TaskManager};
 use sp_consensus_aura::sr25519::AuthorityPair as AuraPair;
 use sp_inherents::InherentDataProviders;
 use std::sync::Arc;
@@ -23,7 +20,8 @@ native_executor_instance!(
     node_auction_runtime::native_version,
 );
 
-#[path = "rpc.rs"] mod brpc;
+#[path = "rpc.rs"]
+mod brpc;
 
 type FullClient = sc_service::TFullClient<Block, RuntimeApi, Executor>;
 type FullBackend = sc_service::TFullBackend<Block>;
