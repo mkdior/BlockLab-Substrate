@@ -7,7 +7,10 @@ pub use sc_executor::NativeExecutor;
 use sc_finality_grandpa::{
     FinalityProofProvider as GrandpaFinalityProofProvider, SharedVoterState,
 };
-use sc_service::{error::Error as ServiceError, Configuration, TaskManager, RpcExtensionBuilder, NoopRpcExtensionBuilder};
+use sc_service::{
+    error::Error as ServiceError, Configuration, NoopRpcExtensionBuilder, RpcExtensionBuilder,
+    TaskManager,
+};
 use sp_consensus_aura::sr25519::AuthorityPair as AuraPair;
 use sp_inherents::InherentDataProviders;
 use std::sync::Arc;
@@ -27,9 +30,14 @@ native_executor_instance!(
 //            io.extend_with(auction_rpc::AuctionInformationAPI::to_delegate(auction_rpc::AuctionInformation::new(builder.client().clone())));
 //            Ok(io)
 
+
+#[path = "rpc.rs"] mod brpc;
+
 type FullClient = sc_service::TFullClient<Block, RuntimeApi, Executor>;
 type FullBackend = sc_service::TFullBackend<Block>;
 type FullSelectChain = sc_consensus::LongestChain<FullBackend, Block>;
+
+type RpcExtension = jsonrpc_core::IoHandler<sc_rpc::Metadata>;
 
 pub fn new_partial(
     config: &Configuration,
@@ -149,15 +157,30 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
     let prometheus_registry = config.prometheus_registry().cloned();
     let telemetry_connection_sinks = sc_service::TelemetryConnectionSinks::default();
 
-    type RpcExtension = jsonrpc_core::IoHandler<sc_rpc::Metadata>;
+    // let mut io = jsonrpc_core::IoHandler::default();
+    // let auction_rpc_builder: &'static NoopRpcExtensionBuilder<RpcExtension> =
+    // io.extend_with(auction_rpc::AuctionInformationAPI::to_delegate(auction_rpc::AuctionInformation::new(client.clone())));
 
-    let auction_rpc_builder: &'static NoopRpcExtensionBuilder<RpcExtension> = NoopRpcExtensionBuilder::<RpcExtension>({
-        let mut io = jsonrpc_core::IoHandler::default();
-        io.extend_with(auction_rpc::AuctionInformationAPI::to_delegate(
-            auction_rpc::AuctionInformation::new(client.clone()),
-        ));
-        io
-    });
+    
+    let is_authority = config.role.is_authority();
+
+    let rpc_extensions_builder = {
+        let client = client.clone();
+        let pool = transaction_pool.clone();
+        let select_chain = select_chain.clone();
+
+        Box::new(move |deny_unsafe| {
+            let deps = brpc::FullDeps {
+                client: client.clone(),
+                pool: pool.clone(),
+                select_chain: select_chain.clone(),
+                deny_unsafe,
+                is_authority,
+            };
+
+            brpc::create_full(deps)
+        })
+    };
 
     sc_service::spawn_tasks(sc_service::SpawnTasksParams {
         network: network.clone(),
@@ -166,7 +189,7 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
         task_manager: &mut task_manager,
         transaction_pool: transaction_pool.clone(),
         telemetry_connection_sinks: telemetry_connection_sinks.clone(),
-        rpc_extensions_builder: Box::new(|_| (auction_rpc_builder.build(sc_rpc::DenyUnsafe::No))),
+        rpc_extensions_builder: rpc_extensions_builder,
         on_demand: None,
         remote_blockchain: None,
         backend,

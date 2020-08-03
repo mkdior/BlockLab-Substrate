@@ -154,6 +154,18 @@ path = "../pallets/auction"
 default-features = false
 path = "../pallets/auction/auction-api"
 
+[dependencies.system-runtime-rpi]
+default-features = false
+package = "frame-system-rpc-runtime-api"
+version = "2.0.0-rc5"
+path = "../../../frame/system/rpc/runtime-api/"
+
+[dependencies.payment-runtime-rpi]
+default-features = false
+package = "pallet-transaction-payment-rpc-runtime-api"
+version = "2.0.0-rc5" 
+path = "../../../frame/transaction-payment/rpc/runtime-api/"
+
 [build-dependencies.wasm-builder-runner]
 package = "substrate-wasm-builder-runner"
 version = "1.0.5"

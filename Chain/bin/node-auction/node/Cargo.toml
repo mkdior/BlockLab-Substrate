@@ -89,9 +89,35 @@ path = "../../../primitives/finality-grandpa"
 version = "2.0.0-rc5"
 path = "../../../client/api"
 
+[dependencies.sp-api]
+version = "2.0.0-rc5"
+path = "../../../primitives/api"
+
 [dependencies.sc-rpc]
 version = "2.0.0-rc5"
 path = "../../../client/rpc"
+
+[dependencies.sc-rpc-api]
+version = "0.8.0-rc5"
+path = "../../../client/rpc-api"
+
+[dependencies.sp-blockchain]
+version = "2.0.0-rc5"
+path = "../../../primitives/blockchain"
+
+[dependencies.sp-block-builder]
+version = "2.0.0-rc5"
+path = "../../../primitives/block-builder"
+
+[dependencies.system-rpc]
+package = "substrate-frame-rpc-system"
+version = "2.0.0-rc5"
+path = "../../../utils/frame/rpc/system"
+
+[dependencies.payment-rpc]
+package = "pallet-transaction-payment-rpc"
+version = "2.0.0-rc5"
+path = "../../../frame/transaction-payment/rpc/"
 
 [dependencies.sp-runtime]
 version = "2.0.0-rc5"

@@ -480,6 +480,26 @@ impl_runtime_apis! {
             None
         }
     }
+
+    impl system_runtime_rpi::AccountNonceApi<Block, AccountId, Index> for Runtime {
+        fn account_nonce(account: AccountId) -> Index {
+            System::account_nonce(account)
+        }
+    }
+
+    impl payment_runtime_rpi::TransactionPaymentApi<
+		Block,
+		Balance,
+		UncheckedExtrinsic,
+	> for Runtime {
+		fn query_info(
+			uxt: UncheckedExtrinsic,
+			len: u32
+		) -> payment_runtime_rpi::RuntimeDispatchInfo<Balance> {
+			TransactionPayment::query_info(uxt, len)
+		}
+	}
+
     impl auction_api::AuctionInformationAPI<Block, AuctionId> for Runtime { //AccountId, AuctionId, Balance, BlockNumber, GeneralInformationContainer> for Runtime {
 
         fn auction_exists(id: AuctionId) -> bool {
