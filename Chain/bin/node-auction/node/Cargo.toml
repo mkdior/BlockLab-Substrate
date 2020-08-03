@@ -135,6 +135,10 @@ path = "../runtime"
 version = "2.0.0-rc5"
 path = "../pallets/auction/auction-rpc"
 
+[dependencies.auction-api]
+version = "2.0.0-rc5"
+path = "../pallets/auction/auction-api"
+
 #Build Dependencies#
 ####################
 [build-dependencies.substrate-build-script-utils]

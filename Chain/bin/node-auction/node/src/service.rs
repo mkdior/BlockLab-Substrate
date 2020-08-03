@@ -8,7 +8,7 @@ use sc_finality_grandpa::{
     FinalityProofProvider as GrandpaFinalityProofProvider, SharedVoterState,
 };
 use sc_service::{
-    error::Error as ServiceError, Configuration, NoopRpcExtensionBuilder, RpcExtensionBuilder,
+    error::Error as ServiceError, Configuration,
     TaskManager,
 };
 use sp_consensus_aura::sr25519::AuthorityPair as AuraPair;
@@ -23,20 +23,14 @@ native_executor_instance!(
     node_auction_runtime::native_version,
 );
 
-//        .with_rpc_extensions(|builder| -> Result<RpcExtension, _> {
-//            // Make an io handler to be extended with individual RPCs
-//            let mut io = jsonrpc_core::IoHandler::default();
-//            // [dependencies.auction-rpc]
-//            io.extend_with(auction_rpc::AuctionInformationAPI::to_delegate(auction_rpc::AuctionInformation::new(builder.client().clone())));
-//            Ok(io)
-
-
 #[path = "rpc.rs"] mod brpc;
 
 type FullClient = sc_service::TFullClient<Block, RuntimeApi, Executor>;
 type FullBackend = sc_service::TFullBackend<Block>;
 type FullSelectChain = sc_consensus::LongestChain<FullBackend, Block>;
 
+// NOTE: Allow for now, perhaps this'll be used upon cleanup.
+#[allow(unused)]
 type RpcExtension = jsonrpc_core::IoHandler<sc_rpc::Metadata>;
 
 pub fn new_partial(
@@ -157,11 +151,6 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
     let prometheus_registry = config.prometheus_registry().cloned();
     let telemetry_connection_sinks = sc_service::TelemetryConnectionSinks::default();
 
-    // let mut io = jsonrpc_core::IoHandler::default();
-    // let auction_rpc_builder: &'static NoopRpcExtensionBuilder<RpcExtension> =
-    // io.extend_with(auction_rpc::AuctionInformationAPI::to_delegate(auction_rpc::AuctionInformation::new(client.clone())));
-
-    
     let is_authority = config.role.is_authority();
 
     let rpc_extensions_builder = {
