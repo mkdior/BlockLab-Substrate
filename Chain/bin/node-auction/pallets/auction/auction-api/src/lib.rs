@@ -14,17 +14,17 @@ sp_api::decl_runtime_apis! {
         GeneralInfo: Codec,
     {
         fn auction_exists(id: AuctionId) -> bool;
-        fn auction_query_informal(
-            id: AuctionId,
-        ) -> Option<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>;
+//        fn auction_query_informal(
+//            id: AuctionId,
+//        ) -> Option<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>;
 //        fn auction_query_informal_all(
 //        ) -> Option<Vec<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>;
 //        fn auction_query_informal_all_status(
 //            active: bool,
 //        ) -> Option<Vec<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>;
-//        fn auction_query_formal(
-//            id: AuctionId,
-//        ) -> Option<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>;
+        fn auction_query_formal(
+            id: AuctionId,
+        ) -> Option<UIAuctionInfo<AccountId, BlockNumber, GeneralInfo>>;
 //        fn auction_query_formal_all(
 //        ) -> Option<Vec<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>;
 //        fn auction_query_formal_all_status(

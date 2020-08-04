@@ -24,6 +24,8 @@ use frame_support::{
 // --TEMP--Hamza-- Vector definition comes from here; required!
 use frame_support::inherent::*;
 
+use sp_std::convert::TryInto;
+
 #[allow(unused_imports)]
 use frame_system::{self as system, ensure_signed};
 
@@ -520,6 +522,10 @@ impl<T: Trait> Module<T> {
         Ok(())
     }
 
+    ////////////////////////////////////////////
+    /////////////////// API ////////////////////
+    ////////////////////////////////////////////
+
     #[allow(dead_code)]
     pub fn auction_exists(id: T::AuctionId) -> bool {
         <Auctions<T>>::contains_key(id)
@@ -527,149 +533,183 @@ impl<T: Trait> Module<T> {
 
     /// Returns an auction in its original form. Original means the format it's actually stored in the
     /// database.
-    #[allow(dead_code)]
-    pub fn auction_query_informal(
-        id: T::AuctionId,
-    ) -> Option<
-        AuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber, T::GeneralInformationContainer>,
-    > {
-        let auction = <Auctions<T>>::get(id);
-        if auction.is_some() {
-            auction
-        } else {
-            None
-        }
-    }
-
-    /// Returns a vector of all currently stored auctions regardless of the auction's activity
-    /// status. Returns everything in its original form.
-    #[allow(dead_code)]
-    pub fn auction_query_informal_all() -> Option<
-        Vec<
-            AuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber, T::GeneralInformationContainer>,
-        >,
-    > {
-        let query = <Auctions<T>>::iter().map(|x| x.1).collect::<Vec<_>>();
-        if query.len() == 0 {
-            None
-        } else {
-            Some(query)
-        }
-    }
-
-    #[allow(dead_code)]
-    pub fn auction_query_informal_all_status(
-        _is_active: bool,
-    ) -> Option<
-        Vec<
-            AuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber, T::GeneralInformationContainer>,
-        >,
-    > {
-        let query = <Auctions<T>>::iter()
-            .filter(|x| {
-                // x = (AuctionId -> AuctionInfo)
-                x.1.start >= <frame_system::Module<T>>::block_number()
-            })
-            .map(|x| x.1)
-            .collect::<Vec<_>>();
-
-        if query.len() == 0 {
-            None
-        } else {
-            Some(query)
-        }
-    }
+    //    #[allow(dead_code)]
+    //    pub fn auction_query_informal(
+    //        id: T::AuctionId,
+    //    ) -> Option<
+    //        AuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber, T::GeneralInformationContainer>,
+    //    > {
+    //        let auction = <Auctions<T>>::get(id);
+    //        if auction.is_some() {
+    //            auction
+    //        } else {
+    //            None
+    //        }
+    //    }
+    //
+    //    /// Returns a vector of all currently stored auctions regardless of the auction's activity
+    //    /// status. Returns everything in its original form.
+    //    #[allow(dead_code)]
+    //    pub fn auction_query_informal_all() -> Option<
+    //        Vec<
+    //            AuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber, T::GeneralInformationContainer>,
+    //        >,
+    //    > {
+    //        let query = <Auctions<T>>::iter().map(|x| x.1).collect::<Vec<_>>();
+    //        if query.len() == 0 {
+    //            None
+    //        } else {
+    //            Some(query)
+    //        }
+    //    }
+    //
+    //    #[allow(dead_code)]
+    //    pub fn auction_query_informal_all_status(
+    //        _is_active: bool,
+    //    ) -> Option<
+    //        Vec<
+    //            AuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber, T::GeneralInformationContainer>,
+    //        >,
+    //    > {
+    //        let query = <Auctions<T>>::iter()
+    //            .filter(|x| {
+    //                // x = (AuctionId -> AuctionInfo)
+    //                x.1.start >= <frame_system::Module<T>>::block_number()
+    //            })
+    //            .map(|x| x.1)
+    //            .collect::<Vec<_>>();
+    //
+    //        if query.len() == 0 {
+    //            None
+    //        } else {
+    //            Some(query)
+    //        }
+    //    }
 
     #[allow(dead_code)]
     pub fn auction_query_formal(
         id: T::AuctionId,
-    ) -> Option<
-        UIAuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber, T::GeneralInformationContainer>,
-    > {
+    ) -> Option<UIAuctionInfo<T::AccountId, T::BlockNumber, T::GeneralInformationContainer>> {
         let auction = <Auctions<T>>::get(id);
 
-        if let Some(_auction) = auction {
-            Some(UIAuctionInfo {
+        if let Some(mut _auction) = auction {
+            if let Some(innerbid) = _auction.bid {
+                let converted_balance = Self::balance_to_u64(innerbid.1);
+                let mut converted_bid = Some((innerbid.0.clone(), 0u64));
+
+                if let Some(bal) = converted_balance {
+                    if let Some(cbid) = converted_bid {
+                        converted_bid = Some((cbid.0, bal));
+                    }
+                }
+
+                return Some(UIAuctionInfo {
+                    slot_owner: _auction.creator,
+                    slot_origin: _auction.slot_origin,
+                    slot_time: _auction.core.timestamp,
+                    slot_num_cargo: _auction.core.cargo.0,
+                    slot_num_teu: _auction.core.cargo.1,
+                    auction_is_live: (<frame_system::Module<T>>::block_number() >= _auction.start),
+                    auction_highest_bid: converted_bid,
+                    auction_end_time: _auction.end,
+                });
+            }
+
+            return Some(UIAuctionInfo {
                 slot_owner: _auction.creator,
                 slot_origin: _auction.slot_origin,
                 slot_time: _auction.core.timestamp,
                 slot_num_cargo: _auction.core.cargo.0,
                 slot_num_teu: _auction.core.cargo.1,
                 auction_is_live: (<frame_system::Module<T>>::block_number() >= _auction.start),
-                auction_highest_bid: _auction.bid,
+                auction_highest_bid: None,
                 auction_end_time: _auction.end,
-            })
+            });
         } else {
             None
         }
     }
 
-    #[allow(dead_code)]
-    pub fn auction_query_formal_all() -> Option<
-        Vec<
-            UIAuctionInfo<
-                T::AccountId,
-                BalanceOf<T>,
-                T::BlockNumber,
-                T::GeneralInformationContainer,
-            >,
-        >,
-    > {
-        let query = <Auctions<T>>::iter()
-            .map(|x| UIAuctionInfo {
-                slot_owner: x.1.creator,
-                slot_origin: x.1.slot_origin,
-                slot_time: x.1.core.timestamp,
-                slot_num_cargo: x.1.core.cargo.0,
-                slot_num_teu: x.1.core.cargo.1,
-                auction_is_live: (<frame_system::Module<T>>::block_number() >= x.1.start),
-                auction_highest_bid: x.1.bid,
-                auction_end_time: x.1.end,
-            })
-            .collect::<Vec<_>>();
+    //    #[allow(dead_code)]
+    //    pub fn auction_query_formal_all() -> Option<
+    //        Vec<
+    //            UIAuctionInfo<
+    //                T::AccountId,
+    //                T::BlockNumber,
+    //                T::GeneralInformationContainer,
+    //            >,
+    //        >,
+    //    > {
+    //        let query = <Auctions<T>>::iter()
+    //            .map(|x| UIAuctionInfo {
+    //                slot_owner: x.1.creator,
+    //                slot_origin: x.1.slot_origin,
+    //                slot_time: x.1.core.timestamp,
+    //                slot_num_cargo: x.1.core.cargo.0,
+    //                slot_num_teu: x.1.core.cargo.1,
+    //                auction_is_live: (<frame_system::Module<T>>::block_number() >= x.1.start),
+    //                auction_highest_bid: x.1.bid,
+    //                auction_end_time: x.1.end,
+    //            })
+    //            .collect::<Vec<_>>();
+    //
+    //        if query.len() == 0 {
+    //            None
+    //        } else {
+    //            Some(query)
+    //        }
+    //    }
+    //
+    //    #[allow(dead_code)]
+    //    pub fn auction_query_formal_all_status(
+    //        is_active: bool,
+    //    ) -> Option<
+    //        Vec<
+    //            UIAuctionInfo<
+    //                T::AccountId,
+    //                T::BlockNumber,
+    //                T::GeneralInformationContainer,
+    //            >,
+    //        >,
+    //    > {
+    //        let query = <Auctions<T>>::iter()
+    //            .filter(|x| {
+    //                // x = (AuctionId -> AuctionInfo)
+    //                is_active != (x.1.start >= <frame_system::Module<T>>::block_number())
+    //            })
+    //            .map(|x| UIAuctionInfo {
+    //                slot_owner: x.1.creator,
+    //                slot_origin: x.1.slot_origin,
+    //                slot_time: x.1.core.timestamp,
+    //                slot_num_cargo: x.1.core.cargo.0,
+    //                slot_num_teu: x.1.core.cargo.1,
+    //                auction_is_live: is_active,
+    //                auction_highest_bid: x.1.bid,
+    //                auction_end_time: x.1.end,
+    //            })
+    //            .collect::<Vec<_>>();
+    //
+    //        if query.len() == 0 {
+    //            None
+    //        } else {
+    //            Some(query)
+    //        }
+    //    }
 
-        if query.len() == 0 {
-            None
-        } else {
-            Some(query)
-        }
+    ////////////////////////////////////////////
+    ///////////////// Helpers //////////////////
+    ////////////////////////////////////////////
+
+    /// Serde's numerical capabilities only allow for types up to u64 to be displayed in JSON.
+    /// Since balances of that magnitude itself are quite unrealistic, balances of u128 will
+    /// converted down into a u64, if the value does happen to be too great, then the API will
+    /// simply show the max value of u64.
+    pub fn balance_to_u64(input: BalanceOf<T>) -> Option<u64> {
+        TryInto::<u64>::try_into(input).ok()
     }
 
-    #[allow(dead_code)]
-    pub fn auction_query_formal_all_status(
-        is_active: bool,
-    ) -> Option<
-        Vec<
-            UIAuctionInfo<
-                T::AccountId,
-                BalanceOf<T>,
-                T::BlockNumber,
-                T::GeneralInformationContainer,
-            >,
-        >,
-    > {
-        let query = <Auctions<T>>::iter()
-            .filter(|x| {
-                // x = (AuctionId -> AuctionInfo)
-                is_active != (x.1.start >= <frame_system::Module<T>>::block_number())
-            })
-            .map(|x| UIAuctionInfo {
-                slot_owner: x.1.creator,
-                slot_origin: x.1.slot_origin,
-                slot_time: x.1.core.timestamp,
-                slot_num_cargo: x.1.core.cargo.0,
-                slot_num_teu: x.1.core.cargo.1,
-                auction_is_live: is_active,
-                auction_highest_bid: x.1.bid,
-                auction_end_time: x.1.end,
-            })
-            .collect::<Vec<_>>();
-
-        if query.len() == 0 {
-            None
-        } else {
-            Some(query)
-        }
+    pub fn u64_to_balance_option(input: u64) -> Option<BalanceOf<T>> {
+        input.try_into().ok()
     }
 
     /// Since queued bids are technically already placed, we're not dealing with an origin. Due to

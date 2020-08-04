@@ -17,6 +17,11 @@ default-features = false
 version = "2.0.0-rc5"
 path = "../../../../primitives/runtime"
 
+[dependencies.sp-std]
+default-features = false
+version = "2.0.0-rc5"
+path = "../../../../primitives/std"
+
 [dependencies.frame-system]
 default-features = false
 version = "2.0.0-rc5"
@@ -45,6 +50,7 @@ features = ["derive"]
 default = ['std']
 std = [
   'serde',
+  "sp-std/std",
   'sp-runtime/std',
 	'frame-system/std',
 	'frame-support/std',

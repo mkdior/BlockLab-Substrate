@@ -75,9 +75,9 @@ pub struct AuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContai
 }
 
 /// Auction information displayed to the user on request, this contains specific auction data.
-#[cfg_attr(feature = "std", derive(PartialEq, Eq))]
+#[cfg_attr(feature = "std", derive(PartialEq, Eq, Serialize, Deserialize))]
 #[derive(Clone, Copy, RuntimeDebug, Encode, Decode)]
-pub struct UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer> {
+pub struct UIAuctionInfo<AccountId, BlockNumber, GeneralInformationContainer> {
     /// Original owner of the time-slot
     pub slot_owner: AccountId,
     /// Terminal which originally issued the time-slot
@@ -91,7 +91,7 @@ pub struct UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationCont
     /// True == Live Auction | False == Queued Action
     pub auction_is_live: bool,
     /// The current highest bid placed on this auction (Bidder, Bid)
-    pub auction_highest_bid: Option<(AccountId, Balance)>,
+    pub auction_highest_bid: Option<(AccountId, u64)>,
     /// The auction's end time in blocknumber format
     pub auction_end_time: Option<BlockNumber>,
 }
