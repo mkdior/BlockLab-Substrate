@@ -149,20 +149,15 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
     let prometheus_registry = config.prometheus_registry().cloned();
     let telemetry_connection_sinks = sc_service::TelemetryConnectionSinks::default();
 
-    let is_authority = config.role.is_authority();
-
     let rpc_extensions_builder = {
         let client = client.clone();
         let pool = transaction_pool.clone();
-        let select_chain = select_chain.clone();
 
         Box::new(move |deny_unsafe| {
             let deps = brpc::FullDeps {
                 client: client.clone(),
                 pool: pool.clone(),
-                select_chain: select_chain.clone(),
                 deny_unsafe,
-                is_authority,
             };
 
             brpc::create_full(deps)

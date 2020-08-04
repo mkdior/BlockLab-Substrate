@@ -326,6 +326,7 @@ name = "auction-rpc"
 version = "2.0.0-rc5"
 dependencies = [
  "auction-api",
+ "auction-traits",
  "jsonrpc-core",
  "jsonrpc-core-client",
  "jsonrpc-derive",
@@ -343,6 +344,7 @@ name = "auction-traits"
 version = "0.0.1"
 dependencies = [
  "parity-scale-codec",
+ "serde",
  "sp-runtime",
  "sp-std 2.0.0-rc5 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -7418,9 +7420,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.56"
+version = "1.0.57"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3433e879a558dde8b5e8feb2a04899cf34fdde1fafb894687e52105fc1162ac3"
+checksum = "164eacbdb13512ec2745fb09d51fd5b22b0d65ed294a1dcf7285a360c80a675c"
 dependencies = [
  "itoa",
  "ryu",

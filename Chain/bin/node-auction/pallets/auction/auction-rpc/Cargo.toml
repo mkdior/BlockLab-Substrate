@@ -48,11 +48,15 @@ path = "../auction-api"
 default-features = false 
 path = "../../../runtime"
 
+[dependencies.auction-traits]
+default-features = false
+path = "../../../../utils/auction/traits"
+
 
 [features]
 default = ["std"]
 std = [
-  "serde",
+  "serde/std",
   "sp-api/std",
   "sp-runtime/std",
   "auction-api/std",

@@ -6,6 +6,8 @@ use sp_api::ProvideRuntimeApi;
 use sp_blockchain::HeaderBackend;
 use sp_runtime::{generic::BlockId, traits::Block as BlockT};
 use std::sync::Arc;
+use node_auction_runtime::{AccountId, AuctionId, Balance, BlockNumber, GeneralInformationContainer};
+use auction_traits::auction::*;
 
 #[rpc]
 pub trait AuctionInformationAPI<BlockHash, AccountId, AuctionId, Balance, BlockNumber, GeneralInfo>
@@ -18,34 +20,34 @@ pub trait AuctionInformationAPI<BlockHash, AccountId, AuctionId, Balance, BlockN
         at: Option<BlockHash>,
         id: AuctionId,
     ) -> Result<Option<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>;
-    #[rpc(name = "auctionInformation_queryInformalAll")]
-    fn auction_query_informal_all(
-        &self,
-        at: Option<BlockHash>,
-    ) -> Result<Option<Vec<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>>;
-    #[rpc(name = "auctionInformation_queryInformalAllStatus")]
-    fn auction_query_informal_all_status(
-        &self,
-        at: Option<BlockHash>,
-        active: bool,
-    ) -> Result<Option<Vec<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>>;
-    #[rpc(name = "auctionInformation_queryFormal")]
-    fn auction_query_formal(
-        &self,
-        at: Option<BlockHash>,
-        id: AuctionId,
-    ) -> Result<Option<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>;
-    #[rpc(name = "auctionInformation_queryFormalAll")]
-    fn auction_query_formal_all(
-        &self,
-        at: Option<BlockHash>,
-    ) -> Result<Option<Vec<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>>;
-    #[rpc(name = "auctionInformation_queryFormalAllStatus")]
-    fn auction_query_formal_all_status(
-        &self,
-        at: Option<BlockHash>,
-        active: bool,
-    ) -> Result<Option<Vec<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>>;
+    //    #[rpc(name = "auctionInformation_queryInformalAll")]
+    //    fn auction_query_informal_all(
+    //        &self,
+    //        at: Option<BlockHash>,
+    //    ) -> Result<Option<Vec<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>>;
+    //    #[rpc(name = "auctionInformation_queryInformalAllStatus")]
+    //    fn auction_query_informal_all_status(
+    //        &self,
+    //        at: Option<BlockHash>,
+    //        active: bool,
+    //    ) -> Result<Option<Vec<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>>;
+    //    #[rpc(name = "auctionInformation_queryFormal")]
+    //    fn auction_query_formal(
+    //        &self,
+    //        at: Option<BlockHash>,
+    //        id: AuctionId,
+    //    ) -> Result<Option<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>;
+    //    #[rpc(name = "auctionInformation_queryFormalAll")]
+    //    fn auction_query_formal_all(
+    //        &self,
+    //        at: Option<BlockHash>,
+    //    ) -> Result<Option<Vec<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>>;
+    //    #[rpc(name = "auctionInformation_queryFormalAllStatus")]
+    //    fn auction_query_formal_all_status(
+    //        &self,
+    //        at: Option<BlockHash>,
+    //        active: bool,
+    //    ) -> Result<Option<Vec<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>>;
 }
 
 pub struct AuctionInformation<C, M> {
@@ -62,7 +64,7 @@ impl<C, M> AuctionInformation<C, M> {
     }
 }
 
-impl<C, Block, AuctionId>
+impl<C, Block, AccountId, AuctionId, Balance, BlockNumber, GeneralInfo>
     AuctionInformationAPI<
         <Block as BlockT>::Hash,
         AccountId,
@@ -97,5 +99,60 @@ where
         })
     }
 
-    <++>
+    fn auction_query_informal(
+        &self,
+        at: Option<<Block as BlockT>::Hash>,
+        id: AuctionId,
+    ) -> Result<Option<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>> {
+        let api = self.client.runtime_api();
+        let at = BlockId::hash(at.unwrap_or_else(|| self.client.info().best_hash));
+
+        let runtime_api_result = api.auction_query_informal(&at, id);
+        runtime_api_result.map_err(|e| RpcError {
+            code: ErrorCode::ServerError(9876), // No real reason for this value
+            message: "Something wrong".into(),
+            data: Some(format!("{:?}", e).into()),
+        })
+    }
 }
+
+//    fn auction_query_informal_all(
+//        &self,
+//        at: Option<BlockHash>,
+//    ) -> Result<Option<Vec<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>>
+//    {
+//
+//    }
+//
+//    fn auction_query_informal_all_status(
+//        &self,
+//        at: Option<BlockHash>,
+//        active: bool,
+//    ) -> Result<Option<Vec<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>>
+//    {
+//
+//    }
+//
+//    fn auction_query_formal(
+//        &self,
+//        at: Option<BlockHash>,
+//        id: AuctionId,
+//    ) -> Result<Option<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>
+//    {
+//
+//    }
+//
+//    fn auction_query_formal_all(
+//        &self,
+//        at: Option<BlockHash>,
+//    ) -> Result<Option<Vec<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>>
+//    {
+//
+//    }
+//
+//    fn auction_query_formal_all_status(
+//        &self,
+//        at: Option<BlockHash>,
+//        active: bool,
+//    ) -> Result<Option<Vec<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>>
+//    {
