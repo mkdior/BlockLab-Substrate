@@ -35,7 +35,7 @@ use auction_traits::auction::*;
 ////////////////////////////////////////////
 ////////////////// Tests ///////////////////
 ////////////////////////////////////////////
-
+// To debug this runtime, please use RUST_LOG=runtime=debug
 #[cfg(test)]
 mod tests;
 
@@ -718,7 +718,8 @@ impl<T: Trait> Module<T> {
     /// Serde's numerical capabilities only allow for types up to u64 to be displayed in JSON.
     /// Since balances of that magnitude itself are quite unrealistic, balances of u128 will
     /// converted down into a u64, if the value does happen to be too great, then the API will
-    /// simply show the max value of u64.
+    /// simply show the max value of u64. TODO: Try and cache these values to prevent
+    /// recalculation.
     pub fn balance_to_u64(input: BalanceOf<T>) -> Option<u64> {
         TryInto::<u64>::try_into(input).ok()
     }
