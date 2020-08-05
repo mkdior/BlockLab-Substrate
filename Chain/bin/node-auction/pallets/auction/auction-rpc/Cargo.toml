@@ -44,10 +44,6 @@ path = "../../../../../primitives/api"
 default-features = false 
 path = "../auction-api"
 
-[dependencies.node-auction-runtime]
-default-features = false 
-path = "../../../runtime"
-
 [dependencies.auction-traits]
 default-features = false
 path = "../../../../utils/auction/traits"
@@ -60,5 +56,4 @@ std = [
   "sp-api/std",
   "sp-runtime/std",
   "auction-api/std",
-  "node-auction-runtime/std",
 ]

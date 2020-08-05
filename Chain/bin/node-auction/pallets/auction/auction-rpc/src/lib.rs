@@ -6,7 +6,6 @@ use sp_api::ProvideRuntimeApi;
 use sp_blockchain::HeaderBackend;
 use sp_runtime::{generic::BlockId, traits::Block as BlockT};
 use std::sync::Arc;
-use node_auction_runtime::{AccountId, AuctionId, Balance, BlockNumber, GeneralInformationContainer};
 use auction_traits::auction::*;
 
 #[rpc]

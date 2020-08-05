@@ -1,7 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(clippy::too_many_arguments)]
 
-use auction_traits::auction::{AuctionInfo, UIAuctionInfo};
+use auction_traits::auction::{UIAuctionInfo};
 use frame_support::inherent::Vec;
 use parity_scale_codec::Codec;
 sp_api::decl_runtime_apis! {

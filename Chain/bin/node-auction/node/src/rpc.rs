@@ -1,7 +1,7 @@
 use std::{fmt, sync::Arc};
 
 use node_auction_runtime::{
-    opaque::Block, AccountId, AuctionId, Balance, BlockNumber, GeneralInformationContainer, Hash,
+    opaque::Block, AccountId, AuctionId, Balance, BlockNumber, GeneralInformationContainer,
     Index, UncheckedExtrinsic,
 };
 use sc_client_api::backend::{Backend, StateBackend, StorageProvider};
@@ -9,7 +9,6 @@ use sc_rpc_api::DenyUnsafe;
 use sp_api::ProvideRuntimeApi;
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
-use sp_consensus::SelectChain;
 use sp_runtime::traits::BlakeTwo256;
 use sp_transaction_pool::TransactionPool;
 

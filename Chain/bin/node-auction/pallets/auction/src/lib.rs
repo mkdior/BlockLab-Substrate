@@ -592,17 +592,30 @@ impl<T: Trait> Module<T> {
     ) -> Option<UIAuctionInfo<T::AccountId, T::BlockNumber, T::GeneralInformationContainer>> {
         let auction = <Auctions<T>>::get(id);
 
+        // Check and see if the given auction exists.
         if let Some(mut _auction) = auction {
+            // Auction exists, now check and see if there's an active bid.
             if let Some(innerbid) = _auction.bid {
+                // There's an active bid, pass it on to the converter.
                 let converted_balance = Self::balance_to_u64(innerbid.1);
-                let mut converted_bid = Some((innerbid.0.clone(), 0u64));
+                // An converted bid with just the bidder's ID intact, this is standard. If the
+                // balance cannot be converted from 128 to 64, just show 0. This function only
+                // deals with the frontent API so nothing breaks, just missing information. DONT
+                // change this otherwise the blockchain will CRASH upon an RPC request of a
+                // unsigned 128 value.
+                let mut converted_bid = (innerbid.0.clone(), 0u64);
 
+                // At this point converted_balance can be either a Some or a None, None in the case
+                // that the u128 didn't fit in the u64.
                 if let Some(bal) = converted_balance {
-                    if let Some(cbid) = converted_bid {
-                        converted_bid = Some((cbid.0, bal));
-                    }
+                    // Note that if we don't reach this point of the program, the standard value is
+                    // always 0, hence if the bid is displayed as 0 on the front-end, something
+                    // went wrong. I dont think anyone in the real world has a balance of u128,
+                    // unless we're being invaded by an alien species with the net worth of the
+                    // whole universe.
+                    converted_bid.1 =  bal; 
                 }
-
+                // Return formatted auction with our now compliant bidding information.
                 return Some(UIAuctionInfo {
                     slot_owner: _auction.creator,
                     slot_origin: _auction.slot_origin,
@@ -610,11 +623,11 @@ impl<T: Trait> Module<T> {
                     slot_num_cargo: _auction.core.cargo.0,
                     slot_num_teu: _auction.core.cargo.1,
                     auction_is_live: (<frame_system::Module<T>>::block_number() >= _auction.start),
-                    auction_highest_bid: converted_bid,
+                    auction_highest_bid: Some(converted_bid),
                     auction_end_time: _auction.end,
                 });
             }
-
+            // No bid found so just return the basic auction information.
             return Some(UIAuctionInfo {
                 slot_owner: _auction.creator,
                 slot_origin: _auction.slot_origin,
@@ -625,7 +638,9 @@ impl<T: Trait> Module<T> {
                 auction_highest_bid: None,
                 auction_end_time: _auction.end,
             });
+
         } else {
+            // Auction wasn't found, return None.
             None
         }
     }

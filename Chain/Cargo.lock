@@ -330,7 +330,6 @@ dependencies = [
  "jsonrpc-core",
  "jsonrpc-core-client",
  "jsonrpc-derive",
- "node-auction-runtime",
  "parity-scale-codec",
  "serde",
  "sp-api",
