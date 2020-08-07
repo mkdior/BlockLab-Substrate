@@ -277,9 +277,11 @@ decl_module! {
                 // other. To stop this from happening, we reserve some of the balance now.
                 let reserve_result = Self::reserve_funds(&queued_bid.bid.0, queued_bid.bid.1);
 
-                if let Err(_) = reserve_result {
-                    // Funds couldn't be reserved.
+                if let Err(message) = reserve_result {
+                    // Funds couldn't be reserved. Print a debug line and throw the error. TODO::
+                    // Make a custom error for this scenario and throw it here!
                     sp_runtime::print("ERROR -- BID(QUEUED) >> RESERVE_FUNDS");
+                    return Err(message);
                 }
                 // Note that the reserved balance isn't an exlusive pool of funds, other methods in
                 // this runtime can pull from it. Perhaps something else is needed to make sure
@@ -303,9 +305,11 @@ decl_module! {
             if let Some((a,b)) = &auction.bid {
                 let (previous_bidder,previous_bid) = (a, b);
                 let unreserve_result = Self::unreserve_funds(previous_bidder, *previous_bid);
-                if let Err(_) = unreserve_result {
-                    // Funds couldn't be unreserved
+
+                if let Err(message) = unreserve_result {
+                    // Funds couldn't be unreserved, print a debug line and throw the error.
                     sp_runtime::print("ERROR -- MODULE >> UNRESERVE_FUNDS >> RESERVE");
+                    return Err(message);
                 }
             } else {
                 // If needed, add additional handling here for when there's no previous bid.
@@ -324,16 +328,35 @@ decl_module! {
                 auction.end = new_end;
             }
 
-            // Reserve auction funds
+            // At this point we reserve the funds for the auction, this is also the point where we
+            // know how much is to be reserved. At this point we also convert the reserved_balance
+            // to a bid, this because we're using this "converted" balance for display on the
+            // front-end. DO NOT CHANGE THIS- making use of the regular balance causes issues in
+            // regards to value padding, trying to pass a value through serde results in value+ 15
+            // 0's.
+
+            // Keep track of the previously reserved balances, this is for the case where the user
+            // has bid on multiple auctions, we want to save the correct amount of currencies for
+            // this auction.
+            let pre_reserved = T::Currency::reserved_balance(&bidder);
             let reserve_result = Self::reserve_funds(&bidder, value);
 
-            if let Err(_) = reserve_result {
-                // Funds couldn't be reserved
+            if let Err(message) = reserve_result {
+                // Funds couldn't be reserved. If it ever does happen at this stage, it's wisest to
+                // move the reserving of funds to before we refund the previous bidder. In that
+                // case, if reservation fails, the previous bidder's bid is still active. As of
+                // now, it's removed- which results in a dead auction.
                 sp_runtime::print("ERROR -- MODULE >> RESERVE_FUNDS >> RESERVE");
+                return Err(message);
             }
 
-            // Update auction bid
-            auction.bid = Some((bidder.clone(), value));
+            // Update current auction's bid and request a new clean Balance type which is then
+            // converted to u64 in preparation for display.
+            auction.bid = Some((bidder.clone(), value)); 
+            auction.parsed_bid = TryInto::<u64>::try_into(T::Currency::reserved_balance(&bidder) - pre_reserved).ok();
+
+            sp_runtime::print(auction.parsed_bid.unwrap());
+
             <Auctions<T>>::insert(id, auction);
             // Emit bidding event
             Self::deposit_event(RawEvent::Bid(id, bidder, value));
@@ -597,24 +620,15 @@ impl<T: Trait> Module<T> {
             // Auction exists, now check and see if there's an active bid.
             if let Some(innerbid) = _auction.bid {
                 // There's an active bid, pass it on to the converter.
-                let converted_balance = Self::balance_to_u64(innerbid.1);
+
                 // An converted bid with just the bidder's ID intact, this is standard. If the
                 // balance cannot be converted from 128 to 64, just show 0. This function only
                 // deals with the frontent API so nothing breaks, just missing information. DONT
                 // change this otherwise the blockchain will CRASH upon an RPC request of a
-                // unsigned 128 value.
-                let mut converted_bid = (innerbid.0.clone(), 0u64);
+                // unsigned 128 value. -- Unwrapping the value at this point is safe, since once
+                // you're in this statement, there's always a bid
+                let converted_bid = (innerbid.0.clone(), _auction.parsed_bid.unwrap());
 
-                // At this point converted_balance can be either a Some or a None, None in the case
-                // that the u128 didn't fit in the u64.
-                if let Some(bal) = converted_balance {
-                    // Note that if we don't reach this point of the program, the standard value is
-                    // always 0, hence if the bid is displayed as 0 on the front-end, something
-                    // went wrong. I dont think anyone in the real world has a balance of u128,
-                    // unless we're being invaded by an alien species with the net worth of the
-                    // whole universe.
-                    converted_bid.1 =  bal; 
-                }
                 // Return formatted auction with our now compliant bidding information.
                 return Some(UIAuctionInfo {
                     slot_owner: _auction.creator,
@@ -919,6 +933,7 @@ impl<T: Trait> Auction<T::AccountId, T::BlockNumber, T::GeneralInformationContai
             creator: barge,
             slot_origin: terminal,
             bid: None,
+            parsed_bid: None,
             core: core_info,
             start,
             end,

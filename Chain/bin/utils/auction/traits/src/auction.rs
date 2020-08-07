@@ -66,6 +66,8 @@ pub struct AuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContai
     pub slot_origin: AccountId,
     /// Current bidder and bid price.
     pub bid: Option<(AccountId, Balance)>,
+    /// Current parsed bid price.
+    pub parsed_bid: Option<u64>,
     /// Core auction information
     pub core: AuctionCoreInfo<GeneralInformationContainer>,
     /// Define which block this auction will be started.
