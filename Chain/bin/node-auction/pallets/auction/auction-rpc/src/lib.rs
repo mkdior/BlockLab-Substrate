@@ -13,40 +13,40 @@ pub trait AuctionInformationAPI<BlockHash, AccountId, AuctionId, Balance, BlockN
 {
     #[rpc(name = "auctionInformation_exists")]
     fn auction_exists(&self, at: Option<BlockHash>, id: AuctionId) -> Result<bool>;
-//    #[rpc(name = "auctionInformation_queryInformal")]
-//    fn auction_query_informal(
-//        &self,
-//        at: Option<BlockHash>,
-//        id: AuctionId,
-//    ) -> Result<Option<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>;
-    //    #[rpc(name = "auctionInformation_queryInformalAll")]
-    //    fn auction_query_informal_all(
-    //        &self,
-    //        at: Option<BlockHash>,
-    //    ) -> Result<Option<Vec<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>>;
-    //    #[rpc(name = "auctionInformation_queryInformalAllStatus")]
-    //    fn auction_query_informal_all_status(
-    //        &self,
-    //        at: Option<BlockHash>,
-    //        active: bool,
-    //    ) -> Result<Option<Vec<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>>;
-        #[rpc(name = "auctionInformation_queryFormal")]
-        fn auction_query_formal(
-            &self,
-            at: Option<BlockHash>,
-            id: AuctionId,
-        ) -> Result<Option<UIAuctionInfo<AccountId, BlockNumber, GeneralInfo>>>;
-    //    #[rpc(name = "auctionInformation_queryFormalAll")]
-    //    fn auction_query_formal_all(
-    //        &self,
-    //        at: Option<BlockHash>,
-    //    ) -> Result<Option<Vec<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>>;
-    //    #[rpc(name = "auctionInformation_queryFormalAllStatus")]
-    //    fn auction_query_formal_all_status(
-    //        &self,
-    //        at: Option<BlockHash>,
-    //        active: bool,
-    //    ) -> Result<Option<Vec<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>>;
+    #[rpc(name = "auctionInformation_queryInformal")]
+    fn auction_query_informal(
+        &self,
+        at: Option<BlockHash>,
+        id: AuctionId,
+    ) -> Result<Option<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>;
+    #[rpc(name = "auctionInformation_queryInformalAll")]
+    fn auction_query_informal_all(
+        &self,
+        at: Option<BlockHash>,
+    ) -> Result<Option<Vec<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>>;
+    #[rpc(name = "auctionInformation_queryInformalAllStatus")]
+    fn auction_query_informal_all_status(
+        &self,
+        at: Option<BlockHash>,
+        active: bool,
+    ) -> Result<Option<Vec<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>>;
+    #[rpc(name = "auctionInformation_queryFormal")]
+    fn auction_query_formal(
+        &self,
+        at: Option<BlockHash>,
+        id: AuctionId,
+    ) -> Result<Option<UIAuctionInfo<AccountId, BlockNumber, GeneralInfo>>>;
+    #[rpc(name = "auctionInformation_queryFormalAll")]
+    fn auction_query_formal_all(
+        &self,
+        at: Option<BlockHash>,
+    ) -> Result<Option<Vec<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>>;
+    #[rpc(name = "auctionInformation_queryFormalAllStatus")]
+    fn auction_query_formal_all_status(
+        &self,
+        at: Option<BlockHash>,
+        active: bool,
+    ) -> Result<Option<Vec<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>>;
 }
 
 pub struct AuctionInformation<C, M> {
@@ -113,6 +113,8 @@ where
             data: Some(format!("{:?}", e).into()),
         })
     }
+
+    
 }
 
 //    fn auction_query_informal_all(

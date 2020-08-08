@@ -35,7 +35,7 @@ use auction_traits::auction::*;
 ////////////////////////////////////////////
 ////////////////// Tests ///////////////////
 ////////////////////////////////////////////
-// To debug this runtime, please use RUST_LOG=runtime=debug
+//  RUST_LOG=runtime=debug
 #[cfg(test)]
 mod tests;
 
@@ -55,9 +55,6 @@ pub type InfoCond<T> = AuctionInfo<
     <T as system::Trait>::BlockNumber,
     <T as Trait>::GeneralInformationContainer,
 >;
-
-// Dummy type used for debugging purposes.
-pub type Dummy = u64;
 
 pub trait Trait: system::Trait + Sized {
     // The overarching event type.
@@ -226,6 +223,8 @@ decl_error! {
 
         // Thrown when ensure_can_withdraw fails
         TryReserve,
+        // Thrown when ensure_transfer fails
+        TryTransfer,
         // Thrown when too much funds are being reserved. Initiator doesn't have enough funds.
         AmbitiousReserve,
         // Thrown when too much funds are being unreserved. This should never happen, if it does,
@@ -270,19 +269,18 @@ decl_module! {
                     auction_id: id,
                 };
 
-                //println!("{:#?} being inserted -- queued bid.", queued_bid);
-
                 // Currently bids are queued regardless of the iniatiator's balance. This enables
                 // bidders to cancel each-other's bids out by bidding something higher than the
                 // other. To stop this from happening, we reserve some of the balance now.
                 let reserve_result = Self::reserve_funds(&queued_bid.bid.0, queued_bid.bid.1);
 
-                if let Err(message) = reserve_result {
+                if let Err(error) = reserve_result {
                     // Funds couldn't be reserved. Print a debug line and throw the error. TODO::
                     // Make a custom error for this scenario and throw it here!
                     sp_runtime::print("ERROR -- BID(QUEUED) >> RESERVE_FUNDS");
-                    return Err(message);
+                    return Err(error.into());
                 }
+
                 // Note that the reserved balance isn't an exlusive pool of funds, other methods in
                 // this runtime can pull from it. Perhaps something else is needed to make sure
                 // that the unreserving funds are always successful.
@@ -306,14 +304,11 @@ decl_module! {
                 let (previous_bidder,previous_bid) = (a, b);
                 let unreserve_result = Self::unreserve_funds(previous_bidder, *previous_bid);
 
-                if let Err(message) = unreserve_result {
+                if let Err(error) = unreserve_result {
                     // Funds couldn't be unreserved, print a debug line and throw the error.
                     sp_runtime::print("ERROR -- MODULE >> UNRESERVE_FUNDS >> RESERVE");
-                    return Err(message);
+                    return Err(error.into());
                 }
-            } else {
-                // If needed, add additional handling here for when there's no previous bid.
-                //println!("No previous bid, let's not unreserve the unreservable.");
             }
 
             // In case we're expecting a new end_time, replace it. This in essence extends the
@@ -341,18 +336,18 @@ decl_module! {
             let pre_reserved = T::Currency::reserved_balance(&bidder);
             let reserve_result = Self::reserve_funds(&bidder, value);
 
-            if let Err(message) = reserve_result {
+            if let Err(error) = reserve_result {
                 // Funds couldn't be reserved. If it ever does happen at this stage, it's wisest to
                 // move the reserving of funds to before we refund the previous bidder. In that
                 // case, if reservation fails, the previous bidder's bid is still active. As of
                 // now, it's removed- which results in a dead auction.
                 sp_runtime::print("ERROR -- MODULE >> RESERVE_FUNDS >> RESERVE");
-                return Err(message);
+                return Err(error.into());
             }
 
             // Update current auction's bid and request a new clean Balance type which is then
             // converted to u64 in preparation for display.
-            auction.bid = Some((bidder.clone(), value)); 
+            auction.bid = Some((bidder.clone(), value));
             auction.parsed_bid = TryInto::<u64>::try_into(T::Currency::reserved_balance(&bidder) - pre_reserved).ok();
 
             sp_runtime::print(auction.parsed_bid.unwrap());
@@ -459,19 +454,9 @@ decl_module! {
             Ok(())
         }
 
-        #[weight = 10_000]
-        pub fn ext_dummy(og, cargo: Dummy) -> DispatchResult {
-            let _origin = ensure_signed(og)?;
-            sp_runtime::print("EXT -- DUMMY --");
-            sp_runtime::print("EXT ## DUMMY ##");
-            Ok(())
-        }
-
         fn on_initialize(now: T::BlockNumber) -> Weight {
             // Logging for the runtime, for testin purposes only
-            frame_support::print("HAMZA -- ##################################################");
             frame_support::print("--ACTIVE-- Autioning Pallet.");
-            frame_support::print("HAMZA -- ##################################################");
 
             Self::_on_initialize(now);
 
@@ -485,11 +470,7 @@ decl_module! {
 }
 
 impl<T: Trait> Module<T> {
-    // TODO(Hamza):
-    // https://github.com/substrate-developer-hub/recipes/blob/master/pallets/weights/src/lib.rs
-    pub fn reserve_funds(target: &T::AccountId, amount: BalanceOf<T>) -> DispatchResult {
-        //TODO(Hamza): Serve proper errors. Also perhaps implement Currency for our local trait
-        // to avoid the use of Currency::X
+    pub fn reserve_funds(target: &T::AccountId, amount: BalanceOf<T>) -> Result<(), Error<T>> {
         let _now = <system::Module<T>>::block_number();
         // Make sure that the amount to be reserved isn't higher than the actual balance of the
         // user trying to bid on the auction.
@@ -507,17 +488,24 @@ impl<T: Trait> Module<T> {
         .map_err(|_e| <Error<T>>::TryReserve)?;
         let reserve_result = T::Currency::reserve(&target, amount);
 
-        if let Err(_) = reserve_result {
+        if let Err(info) = reserve_result {
             // Even thought ensure_can_withdraw passed, something went wrong during reserve.
             sp_runtime::print("ERROR -- MODULE >> RESERVE_FUNDS >> RESERVE");
+            sp_runtime::print(info);
+            return Err(<Error<T>>::TryReserve);
         }
 
-        Ok(())
+        Ok(()) // <++>
     }
 
-    pub fn unreserve_funds(target: &T::AccountId, amount: BalanceOf<T>) -> DispatchResult {
+    pub fn unreserve_funds(target: &T::AccountId, amount: BalanceOf<T>) -> Result<(), Error<T>> {
         let _now = <system::Module<T>>::block_number();
-        T::Currency::unreserve(&target, amount);
+        let result = T::Currency::unreserve(&target, amount);
+
+        if let Err(error) = result {
+            sp_runtime::print(error);
+            return Err(<Error<T>>::TryUnreserve);
+        }
 
         Ok(())
     }
@@ -526,7 +514,7 @@ impl<T: Trait> Module<T> {
         from: &T::AccountId,
         to: &T::AccountId,
         amount: BalanceOf<T>,
-    ) -> DispatchResult {
+    ) -> Result<(), Error<T>> {
         // We're trying to make sure that the amount pulled from reserved is equal to the original
         // agreed upon reservation. If reserved is less than that, the amount due is stored in
         // overdraft.
@@ -534,13 +522,16 @@ impl<T: Trait> Module<T> {
         // If the overdraft is larger than zero, it means that the reserved balance has been
         // siphoned from by some other process, this is not meant to happen so stop the transfer if
         // it does happen.
-        ensure!(!(overdraft > Zero::zero()), <Error<T>>::AmbitiousUnreserve);
+        ensure!(!(overdraft > Zero::zero()), <Error<T>>::AmbitiousTransfer);
         // If for some reason we get through the ensure with some balance in overdraft, make sure
         // to remove it from the total amount to at least get to the next checking phase where
         // it'll fail regardless, in a more elgant manner.
-        T::Currency::transfer(from, to, amount - overdraft, AllowDeath)?;
+        let result = T::Currency::transfer(from, to, amount - overdraft, AllowDeath)?;
 
-        let _now = <system::Module<T>>::block_number();
+        if let Err(error) = result {
+            sp_runtime::print(error);
+            return Err(<Error<T>>::TryTransfer); //<++>
+        }
 
         Ok(())
     }
@@ -556,60 +547,56 @@ impl<T: Trait> Module<T> {
 
     /// Returns an auction in its original form. Original means the format it's actually stored in the
     /// database.
-    //    #[allow(dead_code)]
-    //    pub fn auction_query_informal(
-    //        id: T::AuctionId,
-    //    ) -> Option<
-    //        AuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber, T::GeneralInformationContainer>,
-    //    > {
-    //        let auction = <Auctions<T>>::get(id);
-    //        if auction.is_some() {
-    //            auction
-    //        } else {
-    //            None
-    //        }
-    //    }
-    //
-    //    /// Returns a vector of all currently stored auctions regardless of the auction's activity
-    //    /// status. Returns everything in its original form.
-    //    #[allow(dead_code)]
-    //    pub fn auction_query_informal_all() -> Option<
-    //        Vec<
-    //            AuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber, T::GeneralInformationContainer>,
-    //        >,
-    //    > {
-    //        let query = <Auctions<T>>::iter().map(|x| x.1).collect::<Vec<_>>();
-    //        if query.len() == 0 {
-    //            None
-    //        } else {
-    //            Some(query)
-    //        }
-    //    }
-    //
-    //    #[allow(dead_code)]
-    //    pub fn auction_query_informal_all_status(
-    //        _is_active: bool,
-    //    ) -> Option<
-    //        Vec<
-    //            AuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber, T::GeneralInformationContainer>,
-    //        >,
-    //    > {
-    //        let query = <Auctions<T>>::iter()
-    //            .filter(|x| {
-    //                // x = (AuctionId -> AuctionInfo)
-    //                x.1.start >= <frame_system::Module<T>>::block_number()
-    //            })
-    //            .map(|x| x.1)
-    //            .collect::<Vec<_>>();
-    //
-    //        if query.len() == 0 {
-    //            None
-    //        } else {
-    //            Some(query)
-    //        }
-    //    }
+    pub fn auction_query_informal(
+        id: T::AuctionId,
+    ) -> Option<
+        AuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber, T::GeneralInformationContainer>,
+    > {
+        let auction = <Auctions<T>>::get(id);
+        if auction.is_some() {
+            auction
+        } else {
+            None
+        }
+    }
 
-    #[allow(dead_code)]
+    /// Returns a vector of all currently stored auctions regardless of the auction's activity
+    /// status. Returns everything in its original form.
+    pub fn auction_query_informal_all() -> Option<
+        Vec<
+            AuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber, T::GeneralInformationContainer>,
+        >,
+    > {
+        let query = <Auctions<T>>::iter().map(|x| x.1).collect::<Vec<_>>();
+        if query.len() == 0 {
+            None
+        } else {
+            Some(query)
+        }
+    }
+
+    pub fn auction_query_informal_all_status(
+        _is_active: bool,
+    ) -> Option<
+        Vec<
+            AuctionInfo<T::AccountId, BalanceOf<T>, T::BlockNumber, T::GeneralInformationContainer>,
+        >,
+    > {
+        let query = <Auctions<T>>::iter()
+            .filter(|x| {
+                // x = (AuctionId -> AuctionInfo)
+                x.1.start >= <frame_system::Module<T>>::block_number()
+            })
+            .map(|x| x.1)
+            .collect::<Vec<_>>();
+
+        if query.len() == 0 {
+            None
+        } else {
+            Some(query)
+        }
+    }
+
     pub fn auction_query_formal(
         id: T::AuctionId,
     ) -> Option<UIAuctionInfo<T::AccountId, T::BlockNumber, T::GeneralInformationContainer>> {
@@ -652,78 +639,62 @@ impl<T: Trait> Module<T> {
                 auction_highest_bid: None,
                 auction_end_time: _auction.end,
             });
-
         } else {
             // Auction wasn't found, return None.
             None
         }
     }
 
-    //    #[allow(dead_code)]
-    //    pub fn auction_query_formal_all() -> Option<
-    //        Vec<
-    //            UIAuctionInfo<
-    //                T::AccountId,
-    //                T::BlockNumber,
-    //                T::GeneralInformationContainer,
-    //            >,
-    //        >,
-    //    > {
-    //        let query = <Auctions<T>>::iter()
-    //            .map(|x| UIAuctionInfo {
-    //                slot_owner: x.1.creator,
-    //                slot_origin: x.1.slot_origin,
-    //                slot_time: x.1.core.timestamp,
-    //                slot_num_cargo: x.1.core.cargo.0,
-    //                slot_num_teu: x.1.core.cargo.1,
-    //                auction_is_live: (<frame_system::Module<T>>::block_number() >= x.1.start),
-    //                auction_highest_bid: x.1.bid,
-    //                auction_end_time: x.1.end,
-    //            })
-    //            .collect::<Vec<_>>();
-    //
-    //        if query.len() == 0 {
-    //            None
-    //        } else {
-    //            Some(query)
-    //        }
-    //    }
-    //
-    //    #[allow(dead_code)]
-    //    pub fn auction_query_formal_all_status(
-    //        is_active: bool,
-    //    ) -> Option<
-    //        Vec<
-    //            UIAuctionInfo<
-    //                T::AccountId,
-    //                T::BlockNumber,
-    //                T::GeneralInformationContainer,
-    //            >,
-    //        >,
-    //    > {
-    //        let query = <Auctions<T>>::iter()
-    //            .filter(|x| {
-    //                // x = (AuctionId -> AuctionInfo)
-    //                is_active != (x.1.start >= <frame_system::Module<T>>::block_number())
-    //            })
-    //            .map(|x| UIAuctionInfo {
-    //                slot_owner: x.1.creator,
-    //                slot_origin: x.1.slot_origin,
-    //                slot_time: x.1.core.timestamp,
-    //                slot_num_cargo: x.1.core.cargo.0,
-    //                slot_num_teu: x.1.core.cargo.1,
-    //                auction_is_live: is_active,
-    //                auction_highest_bid: x.1.bid,
-    //                auction_end_time: x.1.end,
-    //            })
-    //            .collect::<Vec<_>>();
-    //
-    //        if query.len() == 0 {
-    //            None
-    //        } else {
-    //            Some(query)
-    //        }
-    //    }
+    pub fn auction_query_formal_all(
+    ) -> Option<Vec<UIAuctionInfo<T::AccountId, T::BlockNumber, T::GeneralInformationContainer>>>
+    {
+        let query = <Auctions<T>>::iter()
+            .map(|x| UIAuctionInfo {
+                slot_owner: x.1.creator,
+                slot_origin: x.1.slot_origin,
+                slot_time: x.1.core.timestamp,
+                slot_num_cargo: x.1.core.cargo.0,
+                slot_num_teu: x.1.core.cargo.1,
+                auction_is_live: (<frame_system::Module<T>>::block_number() >= x.1.start),
+                auction_highest_bid: x.1.bid,
+                auction_end_time: x.1.end,
+            })
+            .collect::<Vec<_>>();
+
+        if query.len() == 0 {
+            None
+        } else {
+            Some(query)
+        }
+    }
+
+    pub fn auction_query_formal_all_status(
+        is_active: bool,
+    ) -> Option<Vec<UIAuctionInfo<T::AccountId, T::BlockNumber, T::GeneralInformationContainer>>>
+    {
+        let query = <Auctions<T>>::iter()
+            .filter(|x| {
+                // x = (AuctionId -> AuctionInfo)
+                is_active != (x.1.start >= <frame_system::Module<T>>::block_number())
+            })
+            .map(|x| UIAuctionInfo {
+                slot_owner: x.1.creator,
+                slot_origin: x.1.slot_origin,
+                slot_time: x.1.core.timestamp,
+                slot_num_cargo: x.1.core.cargo.0,
+                slot_num_teu: x.1.core.cargo.1,
+                auction_is_live: is_active,
+                auction_highest_bid: x.1.bid,
+                auction_end_time: x.1.end,
+            })
+            .collect::<Vec<_>>();
+
+        if query.len() == 0 {
+            None
+        } else {
+            Some(query)
+        }
+    }
 
     ////////////////////////////////////////////
     ///////////////// Helpers //////////////////
@@ -778,10 +749,7 @@ impl<T: Trait> Module<T> {
 
         // Update the auction's bid with our queued bid.
         auction.bid = Some((qbid.bid.0.clone(), qbid.bid.1));
-        //println!(
-        //    "Queued bid placed :: Updated auction information :: {:#?}",
-        //    auction
-        //);
+
         <Auctions<T>>::insert(qbid.auction_id, auction);
         Self::deposit_event(RawEvent::BidQueuedPlaced(
             qbid.auction_id,
@@ -794,11 +762,6 @@ impl<T: Trait> Module<T> {
 
     fn _on_initialize(now: T::BlockNumber) {
         for qbid in <QueuedBids<T>>::take(&now) {
-            //println!(
-            //    "Queued bid caught by the initializer : Block {} :: Bid {:?}",
-            //    now, qbid
-            //);
-
             let pq_result = Self::place_queued_bid(qbid);
 
             if let Err(_) = pq_result {
@@ -809,24 +772,14 @@ impl<T: Trait> Module<T> {
     }
 
     fn _on_finalize(now: T::BlockNumber) {
-        // Look and see if current BlockNumber is in AuctionEndTime
-        //        println!("################# Block {} ##################", now);
-        //        for auction in <Auctions<T>>::iter() {
-        //            println!("Auction : {:?}", auction);
-        //        }
-        //        println!("#############################################");
         for (auction_id, _) in <AuctionEndTime<T>>::drain_prefix(&now) {
             // Drain_prefix removes all keys under the specified blocknumber
             if let Some(auction) = <Auctions<T>>::take(&auction_id) {
-                //println!("Current auction being finalized : {:?}", auction);
                 T::Handler::on_auction_ended(
                     auction_id,
                     (auction.creator, auction.slot_origin),
                     auction.bid.clone(),
                 );
-            } else if let None = <Auctions<T>>::take(&auction_id) {
-                // Auction_id not found, something went wrong here.
-                //println!("Something went wrong");
             }
         }
     }
@@ -966,10 +919,7 @@ impl<T: Trait> Auction<T::AccountId, T::BlockNumber, T::GeneralInformationContai
         } else {
             _auction_inner = None;
         }
-        // Using option because returning not as an Option causes an error which would result in
-        // much more bloat-code. Also because I have no idea how to instantiate a
-        // GeneralInformationContainer type from nothing, it can't do conversions for some reason
-        // even though it should be able to, look into it TODO(Hamza).
+
         Ok(_auction_inner)
     }
 }
