@@ -233,6 +233,8 @@ decl_error! {
         // Thrown when reserved funds are being overdrawn while transfering. This should never
         // happen, if it does, the whole chain should stop because there's a bug, hence the panic!.
         AmbitiousTransfer,
+        // Thrown when the minting of new balance fails.
+        MintingFailed,
 
         // Thrown for testing purposes or when no explanation can be given.
         Unexplained,
@@ -500,11 +502,29 @@ impl<T: Trait> Module<T> {
 
     pub fn unreserve_funds(target: &T::AccountId, amount: BalanceOf<T>) -> Result<(), Error<T>> {
         let _now = <system::Module<T>>::block_number();
-        let result = T::Currency::unreserve(&target, amount);
+        // Unreserve never returns an error. If reserved is less than given amount, all it does is
+        // unreserve as much as it can unreserve. What it returns is an overdraft, this makes it so
+        // that the user recieves the overdraft as extra currency from the system. ::DANGEROUS::
+        let overdraft = T::Currency::unreserve(&target, amount);
 
-        if let Err(error) = result {
-            sp_runtime::print(error);
-            return Err(<Error<T>>::TryUnreserve);
+        if overdraft > 0.into() {
+            // There are two options once in here. Either throw an error and skip the unreserving,
+            // which would break the flow of auctions. Or recompense the target. In this case we're
+            // minting new balance and issuing it to the target, this makes the target happy, the
+            // system not so.
+            let minting_result = T::Currency::deposit_into_existing(&target, overdraft);
+
+            if let Err(error) = minting_result {
+                sp_runtime::print(
+                    "There was a problem minting balance for target during unreserve",
+                );
+                sp_runtime::print(error);
+                return Err(<Error<T>>::MintingFailed);
+            }
+
+            // This print can be seen as a silent error. Do not disrupt the chain during this
+            // process.
+            sp_runtime::print("Overdraft detected during unreserving!");
         }
 
         Ok(())
@@ -526,7 +546,7 @@ impl<T: Trait> Module<T> {
         // If for some reason we get through the ensure with some balance in overdraft, make sure
         // to remove it from the total amount to at least get to the next checking phase where
         // it'll fail regardless, in a more elgant manner.
-        let result = T::Currency::transfer(from, to, amount - overdraft, AllowDeath)?;
+        let result = T::Currency::transfer(from, to, amount - overdraft, AllowDeath);
 
         if let Err(error) = result {
             sp_runtime::print(error);
@@ -649,15 +669,32 @@ impl<T: Trait> Module<T> {
     ) -> Option<Vec<UIAuctionInfo<T::AccountId, T::BlockNumber, T::GeneralInformationContainer>>>
     {
         let query = <Auctions<T>>::iter()
-            .map(|x| UIAuctionInfo {
-                slot_owner: x.1.creator,
-                slot_origin: x.1.slot_origin,
-                slot_time: x.1.core.timestamp,
-                slot_num_cargo: x.1.core.cargo.0,
-                slot_num_teu: x.1.core.cargo.1,
-                auction_is_live: (<frame_system::Module<T>>::block_number() >= x.1.start),
-                auction_highest_bid: x.1.bid,
-                auction_end_time: x.1.end,
+            .map(|x| {
+                if let Some(inner_bid) = x.1.bid {
+                    let converted_bid = Some((inner_bid.0.clone(), x.1.parsed_bid.unwrap()));
+
+                    return UIAuctionInfo {
+                        slot_owner: x.1.creator,
+                        slot_origin: x.1.slot_origin,
+                        slot_time: x.1.core.timestamp,
+                        slot_num_cargo: x.1.core.cargo.0,
+                        slot_num_teu: x.1.core.cargo.1,
+                        auction_is_live: (<frame_system::Module<T>>::block_number() >= x.1.start),
+                        auction_highest_bid: converted_bid,
+                        auction_end_time: x.1.end,
+                    };
+                } else {
+                    return UIAuctionInfo {
+                        slot_owner: x.1.creator,
+                        slot_origin: x.1.slot_origin,
+                        slot_time: x.1.core.timestamp,
+                        slot_num_cargo: x.1.core.cargo.0,
+                        slot_num_teu: x.1.core.cargo.1,
+                        auction_is_live: (<frame_system::Module<T>>::block_number() >= x.1.start),
+                        auction_highest_bid: None,
+                        auction_end_time: x.1.end,
+                    };
+                }
             })
             .collect::<Vec<_>>();
 
@@ -677,15 +714,32 @@ impl<T: Trait> Module<T> {
                 // x = (AuctionId -> AuctionInfo)
                 is_active != (x.1.start >= <frame_system::Module<T>>::block_number())
             })
-            .map(|x| UIAuctionInfo {
-                slot_owner: x.1.creator,
-                slot_origin: x.1.slot_origin,
-                slot_time: x.1.core.timestamp,
-                slot_num_cargo: x.1.core.cargo.0,
-                slot_num_teu: x.1.core.cargo.1,
-                auction_is_live: is_active,
-                auction_highest_bid: x.1.bid,
-                auction_end_time: x.1.end,
+            .map(|x| {
+                if let Some(inner_bid) = x.1.bid {
+                    let converted_bid = Some((inner_bid.0.clone(), x.1.parsed_bid.unwrap()));
+
+                    return UIAuctionInfo {
+                        slot_owner: x.1.creator,
+                        slot_origin: x.1.slot_origin,
+                        slot_time: x.1.core.timestamp,
+                        slot_num_cargo: x.1.core.cargo.0,
+                        slot_num_teu: x.1.core.cargo.1,
+                        auction_is_live: is_active,
+                        auction_highest_bid: converted_bid,
+                        auction_end_time: x.1.end,
+                    };
+                } else {
+                    return UIAuctionInfo {
+                        slot_owner: x.1.creator,
+                        slot_origin: x.1.slot_origin,
+                        slot_time: x.1.core.timestamp,
+                        slot_num_cargo: x.1.core.cargo.0,
+                        slot_num_teu: x.1.core.cargo.1,
+                        auction_is_live: is_active,
+                        auction_highest_bid: None,
+                        auction_end_time: x.1.end,
+                    };
+                }
             })
             .collect::<Vec<_>>();
 

@@ -1,4 +1,5 @@
 use auction_api::AuctionInformationAPI as AuctionWrapperAPI;
+use auction_traits::auction::*;
 use codec::Codec;
 use jsonrpc_core::{Error as RpcError, ErrorCode, Result};
 use jsonrpc_derive::rpc;
@@ -6,7 +7,6 @@ use sp_api::ProvideRuntimeApi;
 use sp_blockchain::HeaderBackend;
 use sp_runtime::{generic::BlockId, traits::Block as BlockT};
 use std::sync::Arc;
-use auction_traits::auction::*;
 
 #[rpc]
 pub trait AuctionInformationAPI<BlockHash, AccountId, AuctionId, Balance, BlockNumber, GeneralInfo>
@@ -98,6 +98,69 @@ where
         })
     }
 
+    fn auction_query_informal(
+        &self,
+        at: Option<<Block as BlockT>::Hash>,
+        id: AuctionId,
+    ) -> Result<Option<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>> {
+        let api = self.client.runtime_api();
+        let at = BlockId::hash(at.unwrap_or_else(|| self.client.info().best_hash));
+
+        let runtime_api_result = api.auction_query_informal(&at, id);
+        runtime_api_result.map_err(|e| RpcError {
+            code: ErrorCode::ServerError(9876),
+            message: "Something wrong".into(),
+            data: Some(format!("{:?}", e).into()),
+        })
+    }
+
+    fn auction_query_informal_all(
+        &self,
+        at: Option<<Block as BlockT>::Hash>,
+    ) -> Result<Option<Vec<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>> {
+        let api = self.client.runtime_api();
+        let at = BlockId::hash(at.unwrap_or_else(|| self.client.info().best_hash));
+
+        let runtime_api_result = api.auction_query_informal_all(&at);
+        runtime_api_result.map_err(|e| RpcError {
+            code: ErrorCode::ServerError(9876),
+            message: "Something wrong".into(),
+            data: Some(format!("{:?}", e).into()),
+        })
+    }
+
+    fn auction_query_informal_all_status(
+        &self,
+        at: Option<<Block as BlockT>::Hash>,
+        active: bool,
+    ) -> Result<Option<Vec<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>> {
+        let api = self.client.runtime_api();
+        let at = BlockId::hash(at.unwrap_or_else(|| self.client.info().best_hash));
+
+        let runtime_api_result = api.auction_query_informal_all_status(&at, active);
+        runtime_api_result.map_err(|e| RpcError {
+            code: ErrorCode::ServerError(9876),
+            message: "Something wrong".into(),
+            data: Some(format!("{:?}", e).into()),
+        })
+    }
+
+    fn auction_query_formal(
+        &self,
+        at: Option<<Block as BlockT>::Hash>,
+        id: AuctionId,
+    ) -> Result<Option<UIAuctionInfo<AccountId, BlockNumber, GeneralInfo>>> {
+        let api = self.client.runtime_api();
+        let at = BlockId::hash(at.unwrap_or_else(|| self.client.info().best_hash));
+
+        let runtime_api_result = api.auction_query_formal(&at, id);
+        runtime_api_result.map_err(|e| RpcError {
+            code: ErrorCode::ServerError(9876),
+            message: "Something wrong".into(),
+            data: Some(format!("{:?}", e).into()),
+        })
+    }
+
     fn auction_query_formal(
         &self,
         at: Option<<Block as BlockT>::Hash>,
@@ -114,46 +177,34 @@ where
         })
     }
 
-    
-}
+    fn auction_query_formal_all(
+        &self,
+        at: Option<<Block as BlockT>::Hash>,
+    ) -> Result<Option<Vec<UIAuctionInfo<AccountId, BlockNumber, GeneralInfo>>>> {
+        let api = self.client.runtime_api();
+        let at = BlockId::hash(at.unwrap_or_else(|| self.client.info().best_hash));
 
-//    fn auction_query_informal_all(
-//        &self,
-//        at: Option<BlockHash>,
-//    ) -> Result<Option<Vec<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>>
-//    {
-//
-//    }
-//
-//    fn auction_query_informal_all_status(
-//        &self,
-//        at: Option<BlockHash>,
-//        active: bool,
-//    ) -> Result<Option<Vec<AuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>>
-//    {
-//
-//    }
-//
-//    fn auction_query_formal(
-//        &self,
-//        at: Option<BlockHash>,
-//        id: AuctionId,
-//    ) -> Result<Option<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>
-//    {
-//
-//    }
-//
-//    fn auction_query_formal_all(
-//        &self,
-//        at: Option<BlockHash>,
-//    ) -> Result<Option<Vec<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>>
-//    {
-//
-//    }
-//
-//    fn auction_query_formal_all_status(
-//        &self,
-//        at: Option<BlockHash>,
-//        active: bool,
-//    ) -> Result<Option<Vec<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>>
-//    {
+        let runtime_api_result = api.auction_query_formal_all(&at);
+        runtime_api_result.map_err(|e| RpcError {
+            code: ErrorCode::ServerError(9876), // No real reason for this value
+            message: "Something wrong".into(),
+            data: Some(format!("{:?}", e).into()),
+        })
+    }
+
+    fn auction_query_formal_all_status(
+        &self,
+        at: Option<<Block as BlockT>::Hash>,
+        active: bool,
+    ) -> Result<Option<Vec<UIAuctionInfo<AccountId, BlockNumber, GeneralInfo>>>> {
+        let api = self.client.runtime_api();
+        let at = BlockId::hash(at.unwrap_or_else(|| self.client.info().best_hash));
+
+        let runtime_api_result = api.auction_query_formal_all_status(&at, active);
+        runtime_api_result.map_err(|e| RpcError {
+            code: ErrorCode::ServerError(9876),
+            message: "Something wrong".into(),
+            data: Some(format!("{:?}", e).into()),
+        })
+    }
+}
