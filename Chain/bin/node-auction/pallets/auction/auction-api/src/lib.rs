@@ -1,7 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(clippy::too_many_arguments)]
 
-use auction_traits::auction::{UIAuctionInfo};
+use auction_traits::auction::{UIAuctionInfo, AuctionInfo};
 use frame_support::inherent::Vec;
 use parity_scale_codec::Codec;
 sp_api::decl_runtime_apis! {
@@ -26,9 +26,9 @@ sp_api::decl_runtime_apis! {
             id: AuctionId,
         ) -> Option<UIAuctionInfo<AccountId, BlockNumber, GeneralInfo>>;
         fn auction_query_formal_all(
-        ) -> Option<Vec<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>;
+        ) -> Option<Vec<UIAuctionInfo<AccountId, BlockNumber, GeneralInfo>>>;
         fn auction_query_formal_all_status(
             active: bool,
-        ) -> Option<Vec<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>;
+        ) -> Option<Vec<UIAuctionInfo<AccountId, BlockNumber, GeneralInfo>>>;
     }
 }

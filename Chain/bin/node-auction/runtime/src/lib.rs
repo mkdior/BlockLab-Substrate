@@ -107,8 +107,8 @@ pub mod opaque {
 }
 
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-    spec_name: create_runtime_str!("node-template"),
-    impl_name: create_runtime_str!("node-template"),
+    spec_name: create_runtime_str!("node-auction"),
+    impl_name: create_runtime_str!("node-auction"),
     authoring_version: 1,
     spec_version: 1,
     impl_version: 1,
@@ -529,13 +529,13 @@ impl_runtime_apis! {
         }
 
         fn auction_query_formal_all(
-        ) -> Option<Vec<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer>>> {
+        ) -> Option<Vec<UIAuctionInfo<AccountId, BlockNumber, GeneralInformationContainer>>> {
             AuctionModule::auction_query_formal_all()
         }
 
         fn auction_query_formal_all_status(
             active: bool,
-        ) -> Option<Vec<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInformationContainer>>> {
+        ) -> Option<Vec<UIAuctionInfo<AccountId, BlockNumber, GeneralInformationContainer>>> {
             AuctionModule::auction_query_formal_all_status(active)
         }
     }

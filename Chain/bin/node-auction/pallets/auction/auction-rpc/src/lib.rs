@@ -40,13 +40,13 @@ pub trait AuctionInformationAPI<BlockHash, AccountId, AuctionId, Balance, BlockN
     fn auction_query_formal_all(
         &self,
         at: Option<BlockHash>,
-    ) -> Result<Option<Vec<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>>;
+    ) -> Result<Option<Vec<UIAuctionInfo<AccountId, BlockNumber, GeneralInfo>>>>;
     #[rpc(name = "auctionInformation_queryFormalAllStatus")]
     fn auction_query_formal_all_status(
         &self,
         at: Option<BlockHash>,
         active: bool,
-    ) -> Result<Option<Vec<UIAuctionInfo<AccountId, Balance, BlockNumber, GeneralInfo>>>>;
+    ) -> Result<Option<Vec<UIAuctionInfo<AccountId, BlockNumber, GeneralInfo>>>>;
 }
 
 pub struct AuctionInformation<C, M> {
@@ -161,22 +161,6 @@ where
         })
     }
 
-    fn auction_query_formal(
-        &self,
-        at: Option<<Block as BlockT>::Hash>,
-        id: AuctionId,
-    ) -> Result<Option<UIAuctionInfo<AccountId, BlockNumber, GeneralInfo>>> {
-        let api = self.client.runtime_api();
-        let at = BlockId::hash(at.unwrap_or_else(|| self.client.info().best_hash));
-
-        let runtime_api_result = api.auction_query_formal(&at, id);
-        runtime_api_result.map_err(|e| RpcError {
-            code: ErrorCode::ServerError(9876), // No real reason for this value
-            message: "Something wrong".into(),
-            data: Some(format!("{:?}", e).into()),
-        })
-    }
-
     fn auction_query_formal_all(
         &self,
         at: Option<<Block as BlockT>::Hash>,
@@ -186,7 +170,7 @@ where
 
         let runtime_api_result = api.auction_query_formal_all(&at);
         runtime_api_result.map_err(|e| RpcError {
-            code: ErrorCode::ServerError(9876), // No real reason for this value
+            code: ErrorCode::ServerError(9876),
             message: "Something wrong".into(),
             data: Some(format!("{:?}", e).into()),
         })

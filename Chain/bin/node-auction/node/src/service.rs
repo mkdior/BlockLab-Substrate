@@ -1,7 +1,7 @@
 //! Service and ServiceFactory implementation. Specialized wrapper over substrate service.
 
 use node_auction_runtime::{self, opaque::Block, RuntimeApi};
-use sc_client_api::{ExecutorProvider, RemoteBackend};
+use sc_client_api::ExecutorProvider;
 use sc_executor::native_executor_instance;
 pub use sc_executor::NativeExecutor;
 use sc_finality_grandpa::{
@@ -9,7 +9,6 @@ use sc_finality_grandpa::{
 };
 use sc_service::{error::Error as ServiceError, Configuration, TaskManager};
 use sp_consensus_aura::sr25519::AuthorityPair as AuraPair;
-use sp_inherents::InherentDataProviders;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -19,9 +18,6 @@ native_executor_instance!(
     node_auction_runtime::api::dispatch,
     node_auction_runtime::native_version,
 );
-
-#[path = "rpc.rs"]
-mod brpc;
 
 type FullClient = sc_service::TFullClient<Block, RuntimeApi, Executor>;
 type FullBackend = sc_service::TFullBackend<Block>;
@@ -154,13 +150,13 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
         let pool = transaction_pool.clone();
 
         Box::new(move |deny_unsafe| {
-            let deps = brpc::FullDeps {
+            let deps = crate::rpc::FullDeps {
                 client: client.clone(),
                 pool: pool.clone(),
                 deny_unsafe,
             };
 
-            brpc::create_full(deps)
+            crate::rpc::create_full(deps)
         })
     };
 
@@ -255,85 +251,6 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
     } else {
         sc_finality_grandpa::setup_disabled_grandpa(client, &inherent_data_providers, network)?;
     }
-
-    Ok(task_manager)
-}
-
-/// Builds a new service for a light client.
-pub fn new_light(config: Configuration) -> Result<TaskManager, ServiceError> {
-    let (client, backend, keystore, mut task_manager, on_demand) =
-        sc_service::new_light_parts::<Block, RuntimeApi, Executor>(&config)?;
-
-    let transaction_pool = Arc::new(sc_transaction_pool::BasicPool::new_light(
-        config.transaction_pool.clone(),
-        config.prometheus_registry(),
-        task_manager.spawn_handle(),
-        client.clone(),
-        on_demand.clone(),
-    ));
-
-    let grandpa_block_import = sc_finality_grandpa::light_block_import(
-        client.clone(),
-        backend.clone(),
-        &(client.clone() as Arc<_>),
-        Arc::new(on_demand.checker().clone()) as Arc<_>,
-    )?;
-    let finality_proof_import = grandpa_block_import.clone();
-    let finality_proof_request_builder =
-        finality_proof_import.create_finality_proof_request_builder();
-
-    let import_queue = sc_consensus_aura::import_queue::<_, _, _, AuraPair, _>(
-        sc_consensus_aura::slot_duration(&*client)?,
-        grandpa_block_import,
-        None,
-        Some(Box::new(finality_proof_import)),
-        client.clone(),
-        InherentDataProviders::new(),
-        &task_manager.spawn_handle(),
-        config.prometheus_registry(),
-    )?;
-
-    let finality_proof_provider =
-        GrandpaFinalityProofProvider::new_for_service(backend.clone(), client.clone());
-
-    let (network, network_status_sinks, system_rpc_tx) =
-        sc_service::build_network(sc_service::BuildNetworkParams {
-            config: &config,
-            client: client.clone(),
-            transaction_pool: transaction_pool.clone(),
-            spawn_handle: task_manager.spawn_handle(),
-            import_queue,
-            on_demand: Some(on_demand.clone()),
-            block_announce_validator_builder: None,
-            finality_proof_request_builder: Some(finality_proof_request_builder),
-            finality_proof_provider: Some(finality_proof_provider),
-        })?;
-
-    if config.offchain_worker.enabled {
-        sc_service::build_offchain_workers(
-            &config,
-            backend.clone(),
-            task_manager.spawn_handle(),
-            client.clone(),
-            network.clone(),
-        );
-    }
-
-    sc_service::spawn_tasks(sc_service::SpawnTasksParams {
-        remote_blockchain: Some(backend.remote_blockchain()),
-        transaction_pool,
-        task_manager: &mut task_manager,
-        on_demand: Some(on_demand),
-        rpc_extensions_builder: Box::new(|_| ()),
-        telemetry_connection_sinks: sc_service::TelemetryConnectionSinks::default(),
-        config,
-        client,
-        keystore,
-        backend,
-        network,
-        network_status_sinks,
-        system_rpc_tx,
-    })?;
 
     Ok(task_manager)
 }
