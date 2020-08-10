@@ -5,7 +5,6 @@
   "Balance": "u128",
   "BalanceOf": "Balance",
   "GeneralInformationContainer": "u64",
-  "Dummy": "u64",
   "Currency": "Balance",
   "BlockNumber": "u32",
   "Hash": "H256",
@@ -17,10 +16,20 @@
     "timestamp": "GeneralInformationContainer",
     "cargo": "(GeneralInformationContainer, GeneralInformationContainer)"
   },
+  "AuctionUpdateComplete": {
+    "old": "AuctionInfo",
+    "new": "AuctionInfo"
+  },
+  "AuctionUpdateInfo": {
+    "timestamp": "Option<GeneralInformationContainer>",
+    "num_con": "Option<GeneralInformationContainer>",
+    "num_teu": "Option<GeneralInformationContainer>"
+  },
   "AuctionInfo": {
     "creator": "AccountId",
     "slot_origin": "AccountId",
     "bid": "Option<(AccountId, Balance)>",
+    "parsed_bid": "Option<u64>",
     "core": "AuctionCoreInfo<GeneralInformationContainer>",
     "start": "BlockNumber",
     "end": "Option<BlockNumber>"
@@ -32,7 +41,7 @@
     "slot_num_cargo": "GeneralInformationContainer",
     "slot_num_teu": "GeneralInformationContainer",
     "auction_is_live": "bool",
-    "auction_highest_bid": "Option<(AccountId, Balance)>",
+    "auction_highest_bid": "Option<(AccountId, u64)>",
     "auction_end_time": "Option<BlockNumber>"
   },
   "OnNewBidResult": {
