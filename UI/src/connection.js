@@ -143,42 +143,41 @@ let api = ApiPromise.create({
         GeneralInformationContainer: "u64",
         GenInfo: "GeneralInformationContainer",
         Status: "bool",
-        Dummy: "u64",
         Currency: "Balance",
         BlockNumber: "u32",
         Hash: "H256",
-    },
-    QueuedBid: {
-        bid: "(AccountId, Balance)",
-        auction_id: "AuctionId"
-    },
-    AuctionCoreInfo: {
-        timestamp: "GeneralInformationContainer",
-        cargo: "(GeneralInformationContainer, GeneralInformationContainer)"
-    },
-    AuctionInfo: {
-        creator: "AccountId",
-        slot_origin: "AccountId",
-        bid: "Option<(AccountId, Balance)>",
-        core: "AuctionCoreInfo<GeneralInformationContainer>",
-        start: "BlockNumber",
-        end: "Option<BlockNumber>"
-    },
-    UIAuctionInfo: {
-        slot_owner: "AccountId",
-        slot_origin: "AccountId",
-        slot_time: "GeneralInformationContainer",
-        slot_num_cargo: "GeneralInformationContainer",
-        slot_num_teu: "GeneralInformationContainer",
-        auction_is_live: "bool",
-        auction_highest_bid: "Option<(AccountId, Balance)>",
-        auction_end_time: "Option<BlockNumber>"
-    },
-    OnNewBidResult: {
-        accept_bid: "bool",
-        auction_end: "Option<Option<BlockNumber>>"
+        QueuedBid: {
+            bid: "(AccountId, Balance)",
+            auction_id: "AuctionId"
+        },
+        AuctionCoreInfo: {
+            timestamp: "GeneralInformationContainer",
+            cargo: "(GeneralInformationContainer, GeneralInformationContainer)"
+        },
+        AuctionInfo: {
+            creator: "AccountId",
+            slot_origin: "AccountId",
+            bid: "Option<(AccountId, Balance)>",
+            core: "AuctionCoreInfo<GeneralInformationContainer>",
+            start: "BlockNumber",
+            end: "Option<BlockNumber>"
+        },
+        UIAuctionInfo: {
+            slot_owner: "AccountId",
+            slot_origin: "AccountId",
+            slot_time: "GeneralInformationContainer",
+            slot_num_cargo: "GeneralInformationContainer",
+            slot_num_teu: "GeneralInformationContainer",
+            auction_is_live: "bool",
+            auction_highest_bid: "Option<(AccountId, Balance)>",
+            auction_end_time: "Option<BlockNumber>"
+        },
+        OnNewBidResult: {
+            accept_bid: "bool",
+            auction_end: "Option<Option<BlockNumber>>"
+        }
     }
-});
+}, );
 
 //const util = require("@polkadot/util");
 export default api;
