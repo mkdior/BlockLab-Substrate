@@ -18,6 +18,8 @@ import { Card } from "@/components/index";
 
 import api from "../connection.js";
 
+// api.rpc.auctionInformation.[]
+
 export default {
   components: {
     Card,
@@ -32,6 +34,7 @@ export default {
     getBlockNumber() {
       api.then((api) => {
         api.rpc.chain.getBlock().then((block) => {
+		console.log(api.rpc.auctionInformation.queryFormal("0x0f0bdccf8ee18903d198b0898220ea86ddb2bbcc2c94fef55de7d14a5c15e73e", 7));
           this.blocknumber = block.block.header.number.toNumber();
         });
       });
