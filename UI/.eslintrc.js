@@ -1,11 +1,16 @@
+const base = require('@polkadot/dev/config/eslint');
+
+// add override for any (a metric ton of them, initial conversion)
 module.exports = {
-    "env": {
-        "browser": true,
-    },
-    "extends": "plugin:vue/essential",
-    "plugins": [
-        "vue"
-    ],
-    "rules": {
-    }
+  ...base,
+  parserOptions: {
+    ...base.parserOptions,
+    project: [
+      './tsconfig.json'
+    ]
+  },
+  rules: {
+    ...base.rules,
+    '@typescript-eslint/no-explicit-any': 'off',
+  }
 };
