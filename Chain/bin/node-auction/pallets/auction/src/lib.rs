@@ -497,7 +497,7 @@ impl<T: Trait> Module<T> {
             return Err(<Error<T>>::TryReserve);
         }
 
-        Ok(()) // <++>
+        Ok(()) // 
     }
 
     pub fn unreserve_funds(target: &T::AccountId, amount: BalanceOf<T>) -> Result<(), Error<T>> {
@@ -550,7 +550,7 @@ impl<T: Trait> Module<T> {
 
         if let Err(error) = result {
             sp_runtime::print(error);
-            return Err(<Error<T>>::TryTransfer); //<++>
+            return Err(<Error<T>>::TryTransfer); //
         }
 
         Ok(())
@@ -621,7 +621,7 @@ impl<T: Trait> Module<T> {
         id: T::AuctionId,
     ) -> Option<UIAuctionInfo<T::AccountId, T::BlockNumber, T::GeneralInformationContainer>> {
         let auction = <Auctions<T>>::get(id);
-
+        
         // Check and see if the given auction exists.
         if let Some(mut _auction) = auction {
             // Auction exists, now check and see if there's an active bid.
