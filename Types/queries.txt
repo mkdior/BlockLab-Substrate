@@ -1,4 +1,4 @@
 curl -H "Content-Type: application/json" -d '{"id":1, "jsonrpc":"2.0", "method": "rpc_methods"}' http://localhost:9933/
 
-curl -H "Content-Type: application/json" -d '{"id":1, "jsonrpc":"2.0", "method": "auctionInformation_queryFormal", "params":["0xd156a7df6d93ac6416d0a5ad3567aa55e348043535d790c26c3873ec44f9d6a4", 1]}' http://localhost:9933
+curl -H "Content-Type: application/json" -d '{"id":1, "jsonrpc":"2.0", "method": "auctionInformation_queryFormalAll", "params":["0x34b6b4284527fa7e5100e23a9fa330f7bee6d002570523639dfbd282ada8f5f1"]}' http://localhost:9933
 
