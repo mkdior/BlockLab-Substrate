@@ -24,7 +24,7 @@ sp-core = { version = "2.0.0-rc5", path = "../../../primitives/core" }
 sp-runtime = { version = "2.0.0-rc5", path = "../../../primitives/runtime" }
 sp-transaction-pool = { version = "2.0.0-rc5", path = "../../../primitives/transaction-pool" }
 parity-util-mem = { version = "0.7.0", default-features = false, features = ["primitive-types"] }
-linked-hash-map = "0.5.2"
+linked-hash-map = "0.5.3"
 retain_mut = "0.1.1"
 
 [dev-dependencies]
