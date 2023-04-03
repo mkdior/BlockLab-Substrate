@@ -17,7 +17,7 @@ env_logger = "0.7.0"
 log = "0.4.8"
 atty = "0.2.13"
 regex = "1.3.4"
-time = "0.1.42"
+time = "0.2.0"
 ansi_term = "0.12.1"
 lazy_static = "1.4.0"
 tokio = { version = "0.2.21", features = [ "signal", "rt-core", "rt-threaded", "blocking" ] }
